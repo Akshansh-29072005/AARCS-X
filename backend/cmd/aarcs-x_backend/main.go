@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/Akshansh-29072005/AARCS-X/backend/internals/config"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internals/http/handlers/student"
 )
 
 func main(){
@@ -19,9 +20,7 @@ func main(){
 	//database setup
 	//router setup
 	router := http.NewServeMux()
-	router.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Welcome to the AARCS-X backend"))
-	})
+	router.HandleFunc("POST /api/students", student.New())
 	//server setup
 	server := http.Server{
 		Addr: cfg.Addr,
