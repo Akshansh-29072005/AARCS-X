@@ -12,15 +12,24 @@ import (
 
 	"github.com/Akshansh-29072005/AARCS-X/backend/internals/config"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internals/http/handlers/student"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internals/storage/sqlite"
 )
 
 func main(){
 	//load config
 	cfg := config.MustLoad()
 	//database setup
+
+	storage, err := sqlite.New(cfg)
+	if err != nil{
+		log.Fatal(err)
+	}
+
+	slog.Info("storage intialized", slog.String("env", cfg.Env), slog.String("version","1.0.0"))
+
 	//router setup
 	router := http.NewServeMux()
-	router.HandleFunc("POST /api/students", student.New())
+	router.HandleFunc("POST /api/students", student.New(storage))
 	//server setup
 	server := http.Server{
 		Addr: cfg.Addr,
@@ -48,7 +57,7 @@ func main(){
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
 
-	err := server.Shutdown(ctx)
+	err = server.Shutdown(ctx)
 
 	if err != nil{
 		slog.Error("Failed to shutdown the server", slog.String("error", err.Error()))
