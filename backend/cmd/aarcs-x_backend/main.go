@@ -33,6 +33,8 @@ func main(){
 	router.HandleFunc("POST /api/students", student.New(storage))
 	//This route is used for extracting the student's info using the Id of the student.
 	router.HandleFunc("GET /api/students/{id}", student.GetById(storage))
+	//This route is used for getting the list of all students
+	router.HandleFunc("GET /api/students", student.GetList(storage))
 	//server setup
 	server := http.Server{
 		Addr: cfg.Addr,
