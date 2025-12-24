@@ -28,8 +28,11 @@ func main(){
 	slog.Info("storage intialized", slog.String("env", cfg.Env), slog.String("version","1.0.0"))
 
 	//router setup
+	//This route is used for making new students.
 	router := http.NewServeMux()
 	router.HandleFunc("POST /api/students", student.New(storage))
+	//This route is used for extracting the student's info using the Id of the student.
+	router.HandleFunc("GET /api/students/{id}", student.GetById(storage))
 	//server setup
 	server := http.Server{
 		Addr: cfg.Addr,
