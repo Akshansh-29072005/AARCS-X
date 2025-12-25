@@ -30,11 +30,13 @@ func main(){
 	//router setup
 	//This route is used for making new students.
 	router := http.NewServeMux()
+	//This route is used for creating a new student.
 	router.HandleFunc("POST /api/students", student.New(storage))
 	//This route is used for extracting the student's info using the Id of the student.
 	router.HandleFunc("GET /api/students/{id}", student.GetById(storage))
-	//This route is used for getting the list of all students
+	//This route is used for getting the list of all students.
 	router.HandleFunc("GET /api/students", student.GetList(storage))
+	//This route is used to delete a student using the Id of the student.
 	//server setup
 	server := http.Server{
 		Addr: cfg.Addr,
