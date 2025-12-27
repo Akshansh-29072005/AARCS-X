@@ -1,4 +1,15 @@
-import { View, Text } from "react-native";
+import {
+  SafeAreaView,
+  View,
+  Text,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  ActivityIndicator,
+  ScrollView,
+} from "react-native";
+
+
 import { useEffect, useState } from "react";
 import { getStudents } from "../../lib/api";
 
