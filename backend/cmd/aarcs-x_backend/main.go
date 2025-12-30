@@ -37,6 +37,7 @@ func main(){
 	//This route is used for getting the list of all students.
 	router.HandleFunc("GET /api/students", student.GetList(storage))
 	//This route is used to delete a student using the Id of the student.
+	
 	//server setup
 	server := http.Server{
 		Addr: cfg.Addr,
