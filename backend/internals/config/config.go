@@ -1,52 +1,29 @@
 package config
 
 import (
-	"flag"
 	"log"
 	"os"
 
-	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/joho/godotenv"
 )
 
-type HTTPServer struct{
-	Addr string `yaml:"address" env-required:"true"`
+type Config struct {
+	DatabseURL  string
+	Port        string
+	// JWTSecret   string
 }
 
-//Used the Clean Env package for configuration
-
-type Config struct{
-	Env         string `yaml:"env" env-required:"true" env-deafult:"production"`
-	StoragePath string `yaml:"storage_path" env-required:"true"`
-	HTTPServer `yaml:"http_server"`
-}
-
-func MustLoad() *Config{
-	var configPath string
-
-	configPath = os.Getenv("CONFIG_PATH")
-
-	if configPath == ""{
-		flags := flag.String("config", "", "path to the configuration file")
-		flag.Parse()
-
-		configPath = *flags
-
-		if configPath == "" {
-			log.Fatal("Config path is not set")
-		}
+func Load()(*Config, error) {
+	var err error =godotenv.Load()
+	if err != nil {
+		log.Println("Warning: .env file not found, using environment variables")
 	}
 
-	if _,err := os.Stat(configPath); os.IsNotExist(err) {
-		log.Fatalf("Configuration file doesnot exists: %s", configPath)
+	var config*Config = &Config{
+		DatabseURL: os.Getenv("DATABASE_URL"),
+		Port:       os.Getenv("PORT"),
+		// JWTSecret:  os.Getenv("JWT_SECRET"),
 	}
 
-	var cfg Config
-
-	err := cleanenv.ReadConfig(configPath, &cfg)
-
-	if err != nil{
-		log.Fatalf("can not read the config file: %s", err.Error())
-	}
-
-	return &cfg
+	return config, nil
 }
