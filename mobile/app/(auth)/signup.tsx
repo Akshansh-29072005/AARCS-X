@@ -5,9 +5,12 @@ import { theme } from "@/constants/theme";
 
 export default function SignupScreen() {
   const [form, setForm] = useState({
-    name: "",
+    first_name: "",
+    last_name: "",
     email: "",
-    password: "",
+    phone: "",
+    semester: 0,
+    branch: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -22,7 +25,13 @@ export default function SignupScreen() {
       setLoading(true);
       setError("");
 
-      await signup(form);
+      // Convert semester to number before sending
+      const payload = {
+        ...form,
+        semester: parseInt(form.semester.toString()) || 0,
+      };
+
+      await signup(payload);
 
     } catch (err: any) {
       setError(err.message);
@@ -41,9 +50,10 @@ export default function SignupScreen() {
           placeholder={key.toUpperCase()}
           placeholderTextColor={theme.colors.muted}
           secureTextEntry={key === "password"}
-          value={(form as any)[key]}
+          value={(form as any)[key].toString()}
           onChangeText={v => update(key, v)}
           style={styles.input}
+          keyboardType={key === "semester" || key === "phone" ? "numeric" : "default"}
         />
       ))}
 
