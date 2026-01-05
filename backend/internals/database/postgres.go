@@ -1,10 +1,10 @@
 package database
 
 import (
+	"context"
 	"log"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"golang.org/x/net/context"
 )
 
 func Connect(databaseURL string) (*pgxpool.Pool, error) {
