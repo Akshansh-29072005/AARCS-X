@@ -5,6 +5,7 @@ import (
 
 	"github.com/Akshansh-29072005/AARCS-X/backend/internals/config"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internals/database"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internals/handlers"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -41,6 +42,8 @@ func main() {
 			"database_connected" : true,
 		})
 	})
+
+	router.POST("/api/students", handlers.CreateStudentHandler(pool))
 
 	router.Run(":" + cfg.Port)
 }
