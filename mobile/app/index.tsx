@@ -1,60 +1,62 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
-import { theme } from "@/constants/theme";
+import { useTheme } from "../context/ThemeContext";
 
 export default function Index() {
   const router = useRouter();
+  const { colors } = useTheme();
+  const dynamicStyles = getStyles(colors);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.system}>SYSTEM.INITIALIZE(USER)</Text>
+    <View style={dynamicStyles.container}>
+      <Text style={dynamicStyles.system}>SYSTEM.INITIALIZE(USER)</Text>
 
-      <Text style={styles.title}>AARCS-X</Text>
-      <Text style={styles.subtitle}>AUTH_GATEWAY</Text>
+      <Text style={dynamicStyles.title}>AARCS-X</Text>
+      <Text style={dynamicStyles.subtitle}>AUTH_GATEWAY</Text>
 
       <Pressable
-        style={styles.primaryButton}
-        onPress={() => router.push("/login")}
+        style={dynamicStyles.primaryButton}
+        onPress={() => router.push("/(auth)/login")}
       >
-        <Text style={styles.primaryText}>EXECUTE_LOGIN</Text>
+        <Text style={dynamicStyles.primaryText}>EXECUTE_LOGIN</Text>
       </Pressable>
 
       <Pressable
-        style={styles.secondaryButton}
-        onPress={() => router.push("/signup")}
+        style={dynamicStyles.secondaryButton}
+        onPress={() => router.push("/(auth)/signup")}
       >
-        <Text style={styles.secondaryText}>CREATE_ACCOUNT</Text>
+        <Text style={dynamicStyles.secondaryText}>CREATE_ACCOUNT</Text>
       </Pressable>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.bg,
+    backgroundColor: colors.bg,
     justifyContent: "center",
     alignItems: "center",
     padding: 24,
   },
   system: {
-    color: theme.colors.primary,
+    color: colors.primary,
     letterSpacing: 1,
     marginBottom: 8,
   },
   title: {
-    color: theme.colors.text,
+    color: colors.text,
     fontSize: 36,
     fontWeight: "800",
     letterSpacing: 2,
   },
   subtitle: {
-    color: theme.colors.muted,
+    color: colors.muted,
     marginBottom: 40,
     letterSpacing: 1,
   },
   primaryButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: colors.primary,
     paddingVertical: 14,
     paddingHorizontal: 28,
     borderRadius: 14,
@@ -69,14 +71,14 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     borderWidth: 1,
-    borderColor: theme.colors.border,
+    borderColor: colors.border,
     paddingVertical: 14,
     paddingHorizontal: 28,
     borderRadius: 14,
     width: "100%",
   },
   secondaryText: {
-    color: theme.colors.text,
+    color: colors.text,
     fontWeight: "600",
     textAlign: "center",
     letterSpacing: 1,
