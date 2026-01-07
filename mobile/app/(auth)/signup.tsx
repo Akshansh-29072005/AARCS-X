@@ -1,116 +1,263 @@
 import { useState } from "react";
-import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
-import { signup } from "@/lib/api";
-import { theme } from "@/constants/theme";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, Pressable, Alert } from "react-native";
+import { useRouter } from "expo-router";
+import { useTheme } from "../../context/ThemeContext";
+import { UserRole, signup } from "../../lib/api";
 
-export default function SignupScreen() {
-  const [form, setForm] = useState({
-    first_name: "",
-    last_name: "",
-    email: "",
-    phone: "",
-    semester: 0,
-    branch: "",
-  });
+type Role = UserRole;
 
+export default function Signup() {
+  const router = useRouter();
+  const { colors } = useTheme();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [role, setRole] = useState<Role>("student");
 
-  function update(key: string, value: string) {
-    setForm(prev => ({ ...prev, [key]: value }));
-  }
+  // Form State
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [semester, setSemester] = useState("");
+  const [branch, setBranch] = useState("");
 
-  async function handleSignup() {
+  const handleSignup = async () => {
     try {
       setLoading(true);
-      setError("");
 
-      // Convert semester to number before sending
-      const payload = {
-        ...form,
-        semester: parseInt(form.semester.toString()) || 0,
-      };
+      await signup({
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        phone,
+        semester: parseInt(semester) || 0,
+        branch,
+        role,
+      });
 
-      await signup(payload);
-
-    } catch (err: any) {
-      setError(err.message);
+      Alert.alert("Success", "Account created successfully!", [
+        { text: "OK", onPress: () => router.back() }
+      ]);
+    } catch (error: any) {
+      Alert.alert("Error", error.message);
     } finally {
       setLoading(false);
     }
-  }
+  };
+
+  const dynamicStyles = getStyles(colors);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>CREATE_ACCOUNT</Text>
+    <View style={dynamicStyles.container}>
+      <ScrollView contentContainerStyle={dynamicStyles.scrollContent}>
+        <Text style={dynamicStyles.title}>Create Account</Text>
+        <Text style={dynamicStyles.subtitle}>Join AARCS-X today</Text>
 
-      {Object.keys(form).map(key => (
-        <TextInput
-          key={key}
-          placeholder={key.toUpperCase()}
-          placeholderTextColor={theme.colors.muted}
-          secureTextEntry={key === "password"}
-          value={(form as any)[key].toString()}
-          onChangeText={v => update(key, v)}
-          style={styles.input}
-          keyboardType={key === "semester" || key === "phone" ? "numeric" : "default"}
-        />
-      ))}
+        {/* Role Selection */}
+        <View style={dynamicStyles.roleContainer}>
+          {(["student", "faculty", "institute"] as Role[]).map((r) => (
+            <Pressable
+              key={r}
+              style={[
+                dynamicStyles.roleButton,
+                role === r && dynamicStyles.roleButtonActive,
+              ]}
+              onPress={() => setRole(r)}
+            >
+              <Text style={[dynamicStyles.roleText, role === r && dynamicStyles.roleTextActive]}>
+                {r.charAt(0).toUpperCase() + r.slice(1)}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+        <View style={dynamicStyles.form}>
+          <View style={dynamicStyles.row}>
+            <View style={dynamicStyles.halfInput}>
+              <Text style={dynamicStyles.label}>First Name</Text>
+              <TextInput
+                style={dynamicStyles.input}
+                placeholder="John"
+                placeholderTextColor={colors.muted}
+                value={firstName}
+                onChangeText={setFirstName}
+              />
+            </View>
+            <View style={dynamicStyles.halfInput}>
+              <Text style={dynamicStyles.label}>Last Name</Text>
+              <TextInput
+                style={dynamicStyles.input}
+                placeholder="Doe"
+                placeholderTextColor={colors.muted}
+                value={lastName}
+                onChangeText={setLastName}
+              />
+            </View>
+          </View>
 
-      <Pressable style={styles.button} onPress={handleSignup} disabled={loading}>
-        <Text style={styles.buttonText}>
-          {loading ? "CREATING..." : "EXECUTE_SIGNUP"}
-        </Text>
-      </Pressable>
+          <Text style={dynamicStyles.label}>Email Address</Text>
+          <TextInput
+            style={dynamicStyles.input}
+            placeholder="john@example.com"
+            placeholderTextColor={colors.muted}
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+
+          <Text style={dynamicStyles.label}>Phone Number</Text>
+          <TextInput
+            style={dynamicStyles.input}
+            placeholder="9876543210"
+            placeholderTextColor={colors.muted}
+            value={phone}
+            onChangeText={setPhone}
+            keyboardType="phone-pad"
+          />
+
+          {role === "student" && (
+            <View style={dynamicStyles.row}>
+              <View style={dynamicStyles.halfInput}>
+                <Text style={dynamicStyles.label}>Semester</Text>
+                <TextInput
+                  style={dynamicStyles.input}
+                  placeholder="5"
+                  placeholderTextColor={colors.muted}
+                  value={semester}
+                  onChangeText={setSemester}
+                  keyboardType="numeric"
+                />
+              </View>
+              <View style={dynamicStyles.halfInput}>
+                <Text style={dynamicStyles.label}>Branch</Text>
+                <TextInput
+                  style={dynamicStyles.input}
+                  placeholder="CSE"
+                  placeholderTextColor={colors.muted}
+                  value={branch}
+                  onChangeText={setBranch}
+                />
+              </View>
+            </View>
+          )}
+
+          <TouchableOpacity
+            style={dynamicStyles.button}
+            onPress={handleSignup}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#000" />
+            ) : (
+              <Text style={dynamicStyles.buttonText}>Sign Up</Text>
+            )}
+          </TouchableOpacity>
+
+          <View style={dynamicStyles.footer}>
+            <Text style={dynamicStyles.footerText}>Already have an account? </Text>
+            <TouchableOpacity onPress={() => router.back()}>
+              <Text style={dynamicStyles.link}>Sign In</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.bg,
-    justifyContent: "center",
-    padding: 24,
+    backgroundColor: colors.bg,
   },
-  system: {
-    color: theme.colors.primary,
-    textAlign: "center",
-    marginBottom: 12,
-    letterSpacing: 1,
+  scrollContent: {
+    padding: 24,
+    paddingTop: 60,
   },
   title: {
-    color: theme.colors.text,
     fontSize: 32,
-    fontWeight: "700",
+    fontWeight: "bold",
+    color: colors.primary,
+    marginBottom: 8,
     textAlign: "center",
+  },
+  subtitle: {
+    fontSize: 16,
+    color: colors.muted,
     marginBottom: 32,
+    textAlign: "center",
+  },
+  roleContainer: {
+    flexDirection: "row",
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    marginBottom: 24,
+    padding: 4,
+  },
+  roleButton: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: "center",
+    borderRadius: 8,
+  },
+  roleButtonActive: {
+    backgroundColor: colors.primary,
+  },
+  roleText: {
+    color: colors.muted,
+    fontWeight: "600",
+  },
+  roleTextActive: {
+    color: "#000",
+  },
+  form: {
+    gap: 16,
+  },
+  row: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  halfInput: {
+    flex: 1,
+    gap: 8, // Gap between label and input
+  },
+  label: {
+    color: colors.text,
+    fontSize: 14,
+    marginBottom: -8,
   },
   input: {
+    backgroundColor: colors.input,
     borderWidth: 1,
-    borderColor: theme.colors.border,
-    borderRadius: 10,
-    padding: 14,
-    color: theme.colors.text,
-    marginBottom: 16,
+    borderColor: colors.border,
+    borderRadius: 12,
+    padding: 16,
+    color: colors.text,
+    fontSize: 16,
   },
   button: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: colors.primary,
     padding: 16,
     borderRadius: 12,
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 8,
   },
   buttonText: {
     color: "#000",
-    fontWeight: "700",
-    letterSpacing: 1,
+    fontSize: 16,
+    fontWeight: "bold",
   },
-  error: {
-    color: "red",
-    marginBottom: 10,
-    textAlign: "center",
+  footer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 24,
+    marginBottom: 40,
+  },
+  footerText: {
+    color: colors.muted,
+  },
+  link: {
+    color: colors.primary,
+    fontWeight: "bold",
   },
 });
