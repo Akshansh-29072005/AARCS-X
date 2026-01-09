@@ -39,3 +39,18 @@ func CreateStudentHandler(pool *pgxpool.Pool) gin.HandlerFunc {
 		c.JSON(http.StatusCreated, student)
 	}
 }
+
+func GetStudentHandler(pool *pgxpool.Pool) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		students, err := repository.GetAllStudents(pool)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error":   "Failed to retrieve students",
+				"details": err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, students)
+	}
+}

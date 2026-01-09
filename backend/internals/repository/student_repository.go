@@ -39,3 +39,47 @@ func CreateStudent(pool *pgxpool.Pool, FirstName string, LastName string, Email 
 
 	return &students, nil
 }
+func GetAllStudents(pool *pgxpool.Pool) ([]models.Student, error) {
+	var ctx context.Context
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	var query string = `
+		SELECT id, first_name, last_name, email, phone, semester, branch, created_at, updated_at
+		FROM students
+	`
+
+	rows, err := pool.Query(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var students []models.Student
+
+	for rows.Next() {
+		var student models.Student
+		err := rows.Scan(
+			&student.ID,
+			&student.FirstName,
+			&student.LastName,
+			&student.Email,
+			&student.Phone,
+			&student.Semester,
+			&student.Branch,
+			&student.CreatedAt,
+			&student.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		students = append(students, student)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return students, nil
+}
