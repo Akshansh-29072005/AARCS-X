@@ -20,4 +20,7 @@ func RegisteredRoutes(router *gin.Engine, pool *pgxpool.Pool) {
 	//Student Routes
 	router.POST("/api/students", handlers.CreateStudentHandler(pool))
 
+	//Teacher Routes
+	router.POST("/api/teachers", handlers.CreateTeacherHandler(pool))
+
 }
