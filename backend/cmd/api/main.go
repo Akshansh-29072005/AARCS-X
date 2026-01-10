@@ -3,9 +3,11 @@ package main
 import (
 	"log"
 
-	"github.com/Akshansh-29072005/AARCS-X/backend/internals/config"
-	"github.com/Akshansh-29072005/AARCS-X/backend/internals/platform/database"
-	"github.com/Akshansh-29072005/AARCS-X/backend/internals/routes"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/config"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/database"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/server"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/students"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/teachers"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -44,8 +46,12 @@ func main() {
 		AllowCredentials: false,
 	}))
 
-	// Registering Routes
-	routes.RegisteredRoutes(router, pool)
+	//Server Status Routes
+	server.RegisterRoutes(router, pool)
+
+	//Registering Routes
+	students.StudentRoutes(router , pool)
+	teachers.TeacherRoutes(router, pool)
 
 	router.Run(":" + cfg.Port)
 }

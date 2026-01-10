@@ -3,7 +3,6 @@ package teachers
 import (
 	"net/http"
 
-	"github.com/Akshansh-29072005/AARCS-X/backend/internals/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -26,7 +25,7 @@ func CreateTeacherHandler(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		teacher, err := repository.CreateTeacher(pool, input.FirstName, input.LastName, input.Email, input.Phone, input.Department, input.Designation)
+		teacher, err := CreateTeacher(pool, input.FirstName, input.LastName, input.Email, input.Phone, input.Department, input.Designation)
 
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
