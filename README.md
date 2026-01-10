@@ -18,6 +18,15 @@ Architecture Overview
 - Mobile App: Expo/React Native, modular screens under [mobile/app](mobile/app), shared components/helpers in [mobile/components](mobile/components) and [mobile/lib](mobile/lib).
 - Dev tooling: Live reload with Air (see [backend/.air.toml](backend/.air.toml)), example environment in [backend/.env.example](backend/.env.example).
 
+## Why This Architecture?
+
+This backend follows a modular monolith architecture to balance:
+- Clear domain boundaries
+- Low operational overhead
+- Easy future extraction into microservices
+
+Each domain (students, teachers, institutes, auth) owns its API, business logic, and persistence layer, while platform concerns (DB, middleware, logging) are centralized.
+
 Production Readiness — What’s Implemented vs What To Finalize
 - Implemented
 	- Health check route at [/](backend/internal/platform/server/routes.go#L9) with DB connectivity indication.
