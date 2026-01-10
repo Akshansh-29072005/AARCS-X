@@ -27,6 +27,25 @@ This backend follows a modular monolith architecture to balance:
 
 Each domain (students, teachers, institutes, auth) owns its API, business logic, and persistence layer, while platform concerns (DB, middleware, logging) are centralized.
 
+### Production Readiness Checklist
+
+- [x] DB connection pooling
+- [x] SQL migrations
+- [x] Environment-based config
+- [ ] JWT authentication
+- [ ] Request ID + structured logging
+- [ ] Metrics and tracing
+- [ ] Rate limiting
+- [ ] CI/CD pipeline
+
+## Non-Goals (For Now)
+
+- Kubernetes orchestration
+- Microservices split
+- Multi-region deployment
+
+These are intentionally deferred to keep focus on correctness, observability, and security first.
+
 Production Readiness — What’s Implemented vs What To Finalize
 - Implemented
 	- Health check route at [/](backend/internal/platform/server/routes.go#L9) with DB connectivity indication.
@@ -153,6 +172,9 @@ CI/CD & Deployment
 Environment Variables
 - Backend (minimum): `DATABASE_URL`, `PORT`
 - Recommended: `JWT_SECRET`, `ALLOWED_ORIGINS`, `LOG_LEVEL`, `GIN_MODE`, `REDIS_URL`
+
+⚠️ Security Note  
+`.env` files are for local development only. Production secrets must be injected via environment variables or a secrets manager.
 
 Try It
 ```bash
