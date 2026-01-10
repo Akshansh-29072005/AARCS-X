@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/Akshansh-29072005/AARCS-X/backend/internals/config"
-	"github.com/Akshansh-29072005/AARCS-X/backend/internals/database"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internals/platform/database"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internals/routes"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -32,7 +32,7 @@ func main() {
 	log.Println("Starting AARCS-X API server...")
 
 	var router *gin.Engine = gin.Default()
-
+	
 	router.SetTrustedProxies(nil)
 
 	// Configuring CORS
