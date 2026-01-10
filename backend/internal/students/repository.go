@@ -4,11 +4,10 @@ import (
 	"context"
 	"time"
 
-	"github.com/Akshansh-29072005/AARCS-X/backend/internals/models"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func CreateStudent(pool *pgxpool.Pool, FirstName string, LastName string, Email string, Phone string, Semester int, Branch string) (*models.Student, error) {
+func CreateStudent(pool *pgxpool.Pool, FirstName string, LastName string, Email string, Phone string, Semester int, Branch string) (*Student, error) {
 	var ctx context.Context
 	var cancel context.CancelFunc
 	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
@@ -20,7 +19,7 @@ func CreateStudent(pool *pgxpool.Pool, FirstName string, LastName string, Email 
 		RETURNING id, first_name, last_name, email, phone, semester, branch, created_at, updated_at
 	`
 
-	var students models.Student
+	var students Student
 	var err error = pool.QueryRow(ctx, query, FirstName, LastName, Email, Phone, Semester, Branch).Scan(
 		&students.ID,
 		&students.FirstName,
@@ -39,7 +38,7 @@ func CreateStudent(pool *pgxpool.Pool, FirstName string, LastName string, Email 
 
 	return &students, nil
 }
-func GetAllStudents(pool *pgxpool.Pool) ([]models.Student, error) {
+func GetAllStudents(pool *pgxpool.Pool) ([]Student, error) {
 	var ctx context.Context
 	var cancel context.CancelFunc
 	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
@@ -56,10 +55,10 @@ func GetAllStudents(pool *pgxpool.Pool) ([]models.Student, error) {
 	}
 	defer rows.Close()
 
-	var students []models.Student
+	var students []Student
 
 	for rows.Next() {
-		var student models.Student
+		var student Student
 		err := rows.Scan(
 			&student.ID,
 			&student.FirstName,
