@@ -2,11 +2,12 @@ package main
 
 import (
 	"log"
+	"log/slog"
 
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/config"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/database"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/server"
-	"github.com/Akshansh-29072005/AARCS-X/backend/internal/students"
+	// "github.com/Akshansh-29072005/AARCS-X/backend/internal/students"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/teachers"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -46,11 +47,12 @@ func main() {
 		AllowCredentials: false,
 	}))
 
-	//Server Status Routes
-	server.RegisterRoutes(router, pool)
+	var logger *slog.Logger = slog.Default()
 
+	//Server Status Routes
+	server.RegisterRoutes(router, pool, logger)
 	//Registering Routes
-	students.StudentRoutes(router , pool)
+	// students.StudentRoutes(router , pool)
 	teachers.TeacherRoutes(router, pool)
 
 	router.Run(":" + cfg.Port)
