@@ -1,11 +1,7 @@
 package students
 
-import (
-	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgxpool"
-)
+import "github.com/gin-gonic/gin"
 
-func StudentRoutes(router *gin.Engine, pool *pgxpool.Pool) {
-	router.POST("/api/students", CreateStudentHandler(pool))
-	router.GET("/api/students", GetStudentHandler(pool))
+func RegisterRoutes(r *gin.Engine, h *Handler) {
+	r.POST("/api/students", h.Create)
 }
