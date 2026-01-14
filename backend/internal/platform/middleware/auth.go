@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gin-gonic/gin"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/auth"
+	"github.com/gin-gonic/gin"
 )
 
 // AuthMiddleware validates JWT access tokens and injects claims into the context.
