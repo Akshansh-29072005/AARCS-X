@@ -154,7 +154,7 @@ func (hs *HealthService) GetMetrics() HealthMetrics {
 	return *hs.metrics
 }
 
-// Response structures for API endpoints
+// HealthResponse structures for API endpoints
 type HealthResponse struct {
 	Status            string    `json:"status"`
 	Message           string    `json:"message"`
