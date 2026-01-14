@@ -4,10 +4,11 @@ import (
 	"log"
 	"log/slog"
 
+	// "github.com/Akshansh-29072005/AARCS-X/backend/internal/auth"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/config"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/database"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/server"
-	// "github.com/Akshansh-29072005/AARCS-X/backend/internal/students"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/students"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/teachers"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -34,9 +35,12 @@ func main() {
 
 	log.Println("Starting AARCS-X API server...")
 
-	var router *gin.Engine = gin.Default()
-	
-	router.SetTrustedProxies(nil)
+	var router = gin.Default()
+
+	err = router.SetTrustedProxies(nil)
+	if err != nil {
+		log.Fatal("Failed to set trusted proxies:", err)
+	}
 
 	// Configuring CORS
 	router.Use(cors.New(cors.Config{
@@ -47,13 +51,34 @@ func main() {
 		AllowCredentials: false,
 	}))
 
-	var logger *slog.Logger = slog.Default()
+	var logger = slog.Default()
+
+	//Auth Routes
+	//auth.RegisterRoutes(router, authHandler)
 
 	//Server Status Routes
 	server.RegisterRoutes(router, pool, logger)
-	//Registering Routes
-	// students.StudentRoutes(router , pool)
+
+	// Student Repository
+	var studentRepository = students.NewRepository(pool)
+
+	// Student Service
+	var studentService = students.NewService(studentRepository)
+
+	// Student Handler
+	var studentHandler = students.NewHandler(studentService)
+
+	// Student Routes
+	students.RegisterRoutes(router, studentHandler)
+
+	// Registering Routes
+	students.NewRepository(pool)
+
+	// Teacher Routes
 	teachers.TeacherRoutes(router, pool)
 
-	router.Run(":" + cfg.Port)
+	err = router.Run(":" + cfg.Port)
+	if err != nil {
+		log.Fatal("Failed to start server:", err)
+	}
 }
