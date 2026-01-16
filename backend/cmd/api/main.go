@@ -56,6 +56,8 @@ func main() {
 	//Auth Routes
 	//auth.RegisterRoutes(router, authHandler)
 
+	// Student Service Enabling
+
 	//Server Status Routes
 	server.RegisterRoutes(router, pool, logger)
 
@@ -71,14 +73,12 @@ func main() {
 	// Student Routes
 	students.RegisterRoutes(router, studentHandler)
 
-	// Registering Routes
-	students.NewRepository(pool)
+	// Teacher Service Enabling
 
 	// Teacher Routes
 	teachers.TeacherRoutes(router, pool)
 
-	err = router.Run(":" + cfg.Port)
-	if err != nil {
+	if err = router.Run(":" + cfg.Port); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}
 }

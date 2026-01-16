@@ -30,3 +30,20 @@ func (h *Handler) Create(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, student)
 }
+
+func (h *Handler) Read(c *gin.Context) {
+	var req GetStudentsRequest
+
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	response, err := h.service.GetStudents(c.Request.Context(), req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
+}

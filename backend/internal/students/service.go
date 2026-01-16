@@ -37,3 +37,31 @@ func (s *Service) CreateStudent(ctx context.Context, req CreateStudentRequest) (
 		UpdatedAt: saved.UpdatedAt,
 	}, nil
 }
+
+func (s *Service) GetStudents(ctx context.Context, q GetStudentsRequest) (*GetStudentsResponse, error) {
+	entities, err := s.repo.List(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+
+	total, err := s.repo.Count(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+	
+	students := make([]StudentListItem, 0, len(entities))
+	for _, e := range entities {
+		students = append(students, StudentListItem{
+			ID:        e.ID,
+			FirstName: e.FirstName,
+			LastName:  e.LastName,
+			Semester:  e.Semester,
+			Branch:    e.Branch,
+		})
+	}
+
+	return &GetStudentsResponse{
+		Students: students,
+		Total: total,
+	}, nil
+}

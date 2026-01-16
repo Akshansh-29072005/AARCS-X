@@ -179,7 +179,7 @@ func RegisterRoutes(router *gin.Engine, pool *pgxpool.Pool, logger *slog.Logger)
 	healthService.Start(context.Background())
 
 	// Health check endpoint - simple connectivity check
-	router.GET("/api/v1/health", func(c *gin.Context) {
+	router.GET("/api/v1/system/health", func(c *gin.Context) {
 		response := HealthResponse{
 			Status:            "ok",
 			Message:           "AARCS-X API is running",
