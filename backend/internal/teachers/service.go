@@ -1,6 +1,8 @@
 package teachers
 
-import "context"
+import (
+	"context"
+)
 
 type Service struct {
 	repo *Repository
@@ -35,5 +37,34 @@ func (s *Service) CreateTeacher(ctx context.Context, req CreateTeacherRequest) (
 		Designation: saved.Designation,
 		CreatedAt:   saved.CreatedAt,
 		UpdatedAt:   saved.UpdatedAt,
+	}, nil
+}
+
+func (s *Service) GetTeachers(ctx context.Context, q GetTeachersRequest) (*GetTeachersResponse, error) {
+	entities, err := s.repo.List(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+
+	total, err := s.repo.Count(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+
+	teachers := make([]TeacherListItem, 0, len(entities))
+
+	for _, e := range entities {
+		teachers = append(teachers, TeacherListItem{
+			ID:          e.ID,
+			FirstName:   e.FirstName,
+			LastName:    e.LastName,
+			Department:  e.Department,
+			Designation: e.Designation,
+		})
+	}
+
+	return &GetTeachersResponse{
+		Teachers: teachers,
+		Total:    total,
 	}, nil
 }

@@ -10,6 +10,7 @@ type CreateTeacherRequest struct {
 }
 
 type TeacherListItem struct {
+	ID          int    `json:"id"`
 	FirstName   string `json:"first_name" binding:"required"`
 	LastName    string `json:"last_name" binding:"required"`
 	Department  string `json:"department" binding:"required"`
@@ -17,11 +18,11 @@ type TeacherListItem struct {
 }
 
 type GetTeachersRequest struct {
-	Department  string `json:"department" binding:"required"`
-	Designation string `json:"designation" binding:"required"`
+	Department  string `form:"department"`
+	Designation string `form:"designation"`
 }
 
-type GetStudentsRequest struct {
+type GetTeachersResponse struct {
 	Teachers []TeacherListItem `json:"teachers" binding:"required"`
 	Total    int               `json:"total" binding:"required"`
 }

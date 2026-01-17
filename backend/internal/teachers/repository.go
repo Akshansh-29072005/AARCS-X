@@ -32,3 +32,48 @@ func (r *Repository) Create(ctx context.Context, e *TeacherEntity) (*TeacherEnti
 
 	return e, err
 }
+
+func (r *Repository) List(ctx context.Context, q GetTeachersRequest) ([]Teacher, error) {
+	rows, err := r.db.Query(ctx,
+		`SELECT id, first_name, last_name, department, designation
+         FROM teachers
+         WHERE ($1 = '' OR department = $1)
+         AND ($2 = '' OR designation = $2)`,
+		q.Department, q.Designation,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var teachers []Teacher
+	for rows.Next() {
+		var t Teacher
+		err := rows.Scan(
+			&t.ID,
+			&t.FirstName,
+			&t.LastName,
+			&t.Department,
+			&t.Designation,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		teachers = append(teachers, t)
+	}
+
+	return teachers, nil
+}
+
+func (r *Repository) Count(ctx context.Context, q GetTeachersRequest) (int, error) {
+	var total int
+	err := r.db.QueryRow(ctx,
+		`SELECT COUNT(*) FROM teachers
+        WHERE ($1 = '' OR department = $1)
+        AND ($2 = '' OR designation = $2)`,
+		q.Department, q.Designation,
+	).Scan(&total)
+	return total, err
+}

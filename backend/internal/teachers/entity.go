@@ -1,6 +1,8 @@
 package teachers
 
-import "time"
+import (
+	"time"
+)
 
 type TeacherEntity struct {
 	ID          int
