@@ -1,15 +1,10 @@
 package teachers
 
-import(
-	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgxpool"
-)
+import "github.com/gin-gonic/gin"
 
-func TeacherRoutes(router *gin.Engine, pool *pgxpool.Pool) {
+func RegisteredRoutes(r *gin.Engine, h *Handler) {
+	group := r.Group("/api/v1")
 
-	// Create Teacher Route
-	router.POST("/api/teachers", CreateTeacherHandler(pool))
-
-	// Get Teachers Route
-	// router.GET("/api/teachers", GetTeacherHandler(pool))
+	// Teacher Creating Route
+	group.POST("/teachers", h.CreateTeacher)
 }

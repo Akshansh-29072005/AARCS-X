@@ -53,13 +53,13 @@ func main() {
 
 	var logger = slog.Default()
 
+	//Server Status Routes
+	server.RegisterRoutes(router, pool, logger)
+
 	//Auth Routes
 	//auth.RegisterRoutes(router, authHandler)
 
 	// Student Service Enabling
-
-	//Server Status Routes
-	server.RegisterRoutes(router, pool, logger)
 
 	// Student Repository
 	var studentRepository = students.NewRepository(pool)
@@ -75,8 +75,17 @@ func main() {
 
 	// Teacher Service Enabling
 
+	// Teacher Repository
+	var teacherRepository = teachers.NewRepository(pool)
+
+	// Teacher Service
+	var teacherService = teachers.NewService(teacherRepository)
+
+	// Teacher Handler
+	var teacherHandler = teachers.NewHandler(teacherService)
+
 	// Teacher Routes
-	teachers.TeacherRoutes(router, pool)
+	teachers.RegisteredRoutes(router, teacherHandler)
 
 	if err = router.Run(":" + cfg.Port); err != nil {
 		log.Fatal("Failed to start server:", err)

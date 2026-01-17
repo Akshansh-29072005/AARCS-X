@@ -4,9 +4,11 @@ import "github.com/gin-gonic/gin"
 
 func RegisterRoutes(r *gin.Engine, h *Handler) {
 
-	// Student Creating Route
-	r.POST("/api/students", h.Create)
+	group := r.Group("/api/v1")
 
-	// Student Getting Route
-	r.GET("api/students", h.Read)
+	// Student Creating Route
+	group.POST("/students", h.CreateStudent)
+
+	// Student Info Getting Route
+	group.GET("/students", h.Read)
 }

@@ -2,39 +2,33 @@ package teachers
 
 import (
 	"context"
-	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func CreateTeacher(pool *pgxpool.Pool, FirstName string, LastName string, Email string, Phone string, Department string, Designation string) (*Teacher, error) {
-	var ctx context.Context
-	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+type Repository struct {
+	db *pgxpool.Pool
+}
 
-	var query string = `
-		INSERT INTO teachers (first_name, last_name, email, phone, department, designation, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
-		RETURNING id, first_name, last_name, email, phone, department, designation, created_at, updated_at
-	`
+func NewRepository(db *pgxpool.Pool) *Repository {
+	return &Repository{db: db}
+}
 
-	var teachers Teacher
-	var err error = pool.QueryRow(ctx, query, FirstName, LastName, Email, Phone, Department, Designation).Scan(
-		&teachers.ID,
-		&teachers.FirstName,
-		&teachers.LastName,
-		&teachers.Email,
-		&teachers.Phone,
-		&teachers.Department,
-		&teachers.Designation,
-		&teachers.CreatedAt,
-		&teachers.UpdatedAt,
-	)
+func (r *Repository) Create(ctx context.Context, e *TeacherEntity) (*TeacherEntity, error) {
+	query := `
+        INSERT INTO teachers(first_name, last_name, email, phone, department, designation, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+        RETURNING id, created_at, updated_at
+        `
 
-	if err != nil{
-		return nil, err
-	}
+	err := r.db.QueryRow(ctx, query,
+		e.FirstName,
+		e.LastName,
+		e.Email,
+		e.Phone,
+		e.Department,
+		e.Designation,
+	).Scan(&e.ID, &e.CreatedAt, &e.UpdatedAt)
 
-	return &teachers, nil
+	return e, err
 }

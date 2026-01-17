@@ -14,7 +14,7 @@ func NewHandler(service *Service) *Handler {
 	return &Handler{service: service}
 }
 
-func (h *Handler) Create(c *gin.Context) {
+func (h *Handler) CreateStudent(c *gin.Context) {
 	var req CreateStudentRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
