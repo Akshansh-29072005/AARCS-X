@@ -1,16 +1,16 @@
--- Institution Tabel
+-- Institution Table
 CREATE TABLE institutions (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
-    code TEXT UNIQUE,
+    code VARCHAR(50) UNIQUE,
     created_at TIMESTAMP DEFAULT now()
 );
 
--- Department Tabel
+-- Department Table
 CREATE TABLE departments (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
-    code TEXT UNIQUE,
+    code VARCHAR(50) UNIQUE,
     institution_id INT REFERENCES institutions(id)
 );
 
@@ -32,10 +32,10 @@ CREATE TABLE subjects (
 -- Students Table
 CREATE TABLE students (
     id SERIAL PRIMARY KEY,
-    first_name TEXT NOT NULL,
-    last_name TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
+    name TEXT NOT NULL,
+    email VARCHAR(50) UNIQUE NOT NULL,
+    phone INT UNIQUE NOT Null,
+    password VARCHAR(10) NOT NULL,
     semester_id INT REFERENCES semesters(id),
     department_id INT REFERENCES departments(id),
     institution_id INT REFERENCES institutions(id),
@@ -46,11 +46,12 @@ CREATE TABLE students (
 -- Teachers
 CREATE TABLE teachers (
     id SERIAL PRIMARY KEY,
-    first_name TEXT NOT NULL,
-    last_name TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
+    name TEXT NOT NULL,
+    email VARCHAR(50) UNIQUE NOT NULL,
+    phone INT UNIQUE NOT NULL,
+    password VARCHAR(10) NOT NULL,
     department_id INT REFERENCES departments(id),
+    designation VARCHAR(50) NOT NULL,
     role TEXT DEFAULT 'teacher',
     created_at TIMESTAMP DEFAULT now()
 );
