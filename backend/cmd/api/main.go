@@ -56,8 +56,10 @@ func main() {
 	//Server Status Routes
 	server.RegisterRoutes(router, pool, logger)
 
-	//Auth Routes
-	//auth.RegisterRoutes(router, authHandler)
+	// Enabling Auth Routes
+
+	// Auth Repository
+	// var authRepository = auth.NewRepository(pool)
 
 	// Student Service Enabling
 
