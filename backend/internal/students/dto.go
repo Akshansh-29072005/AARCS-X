@@ -1,25 +1,27 @@
 package students
 
 type CreateStudentRequest struct {
-	FirstName string `json:"first_name" binding:"required"`
-	LastName  string `json:"last_name" binding:"required"`
-	Email     string `json:"email" binding:"required,email"`
-	Phone     string `json:"phone" binding:"required"`
-	Semester  int    `json:"semester" binding:"required"`
-	Branch    string `json:"branch" binding:"required"`
+	Name          string `json:"name" binding:"required"`
+	Email         string `json:"email" binding:"required,email"`
+	Phone         string `json:"phone" binding:"required"`
+	Password      string `json:"password" binding:"required"`
+	SemesterId    int    `json:"semester_id" binding:"required"`
+	DepartmentId  int    `json:"department_id" binding:"required"`
+	InstitutionId int    `json:"institution_id" binding:"required"`
 }
 
 type StudentListItem struct {
-	ID        int    `json:"id"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Semester  int    `json:"semester"`
-	Branch    string `json:"branch"`
+	ID            int    `json:"id"`
+	Name          string `json:"name"`
+	SemesterId    int    `json:"semester_id"`
+	DepartmentId  int    `json:"department_id"`
+	InstitutionId int    `json:"institution_id"`
 }
 
 type GetStudentsRequest struct {
-	Branch   string `form:"branch"`
-	Semester int    `form:"semester"`
+	SemesterId    int `form:"semester_id"`
+	DepartmentId  int `form:"department_id"`
+	InstitutionId int `form:"institution_id"`
 }
 
 type GetStudentsResponse struct {

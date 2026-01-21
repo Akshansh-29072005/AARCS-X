@@ -5,13 +5,13 @@ import (
 )
 
 type StudentEntity struct {
-	ID        int
-	FirstName string
-	LastName  string
-	Email     string
-	Phone     string
-	Semester  int
-	Branch    string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID            int
+	Name          string
+	Email         string
+	Phone         string
+	Password      string
+	SemesterId    int
+	DepartmentId  int
+	InstitutionId int
+	CreatedAt     time.Time
 }

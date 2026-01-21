@@ -16,30 +16,32 @@ func NewRepository(db *pgxpool.Pool) *Repository {
 
 func (r *Repository) Create(ctx context.Context, e *StudentEntity) (*StudentEntity, error) {
 	query := `
-		INSERT INTO students (first_name, last_name, email, phone, semester, branch, created_at, updated_at)
-		VALUES ($1,$2,$3,$4,$5,$6,NOW(),NOW())
-		RETURNING id, created_at, updated_at
+		INSERT INTO students (name, email, phone, password, semester_id, department_id, institution_id, created_at)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,NOW())
+		RETURNING id, created_at
 	`
 
 	err := r.db.QueryRow(ctx, query,
-		e.FirstName,
-		e.LastName,
+		e.Name,
 		e.Email,
 		e.Phone,
-		e.Semester,
-		e.Branch,
-	).Scan(&e.ID, &e.CreatedAt, &e.UpdatedAt)
+		e.Password,
+		e.SemesterId,
+		e.DepartmentId,
+		e.InstitutionId,
+	).Scan(&e.ID, &e.CreatedAt)
 
 	return e, err
 }
 
 func (r *Repository) List(ctx context.Context, q GetStudentsRequest) ([]Student, error) {
 	rows, err := r.db.Query(ctx,
-	   `SELECT id, first_name, last_name, semester, branch
+		`SELECT id, name, semester, department, institution
 		FROM students
-		WHERE ($1 = '' OR branch = $1)
-		AND ($2 = 0 OR semester = $2)`,
-		q.Branch, q.Semester,
+		WHERE ($1 = 0 OR branch = $1)
+		AND ($2 = '' OR semester = $2)
+		AND ($3 = 0 OR institution = $3)`,
+		q.SemesterId, q.DepartmentId, q.InstitutionId,
 	)
 
 	if err != nil {
@@ -53,10 +55,10 @@ func (r *Repository) List(ctx context.Context, q GetStudentsRequest) ([]Student,
 		var s Student
 		err := rows.Scan(
 			&s.ID,
-			&s.FirstName,
-			&s.LastName,
-			&s.Semester,
-			&s.Branch,
+			&s.Name,
+			&s.SemesterId,
+			&s.DepartmentId,
+			&s.InstitutionId,
 		)
 		if err != nil {
 			return nil, err
@@ -74,10 +76,11 @@ func (r *Repository) List(ctx context.Context, q GetStudentsRequest) ([]Student,
 func (r *Repository) Count(ctx context.Context, q GetStudentsRequest) (int, error) {
 	var total int
 	err := r.db.QueryRow(ctx,
-			`SELECT COUNT(*) FROM students
-			 WHERE ($1 = '' OR branch = $1)
-			 AND ($2 = 0 OR semester = $2)`,
-			 q.Branch, q.Semester,
-			 ).Scan(&total)
+		`SELECT COUNT(*) FROM students
+			 WHERE ($1 = 0 OR branch = $1)
+			 AND ($2 = '' OR semester = $2)
+			 AND ($3 = 0 OR institution = $3)`,
+		q.SemesterId, q.DepartmentId, q.InstitutionId,
+	).Scan(&total)
 	return total, err
 }

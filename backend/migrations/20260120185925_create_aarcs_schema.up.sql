@@ -3,6 +3,7 @@ CREATE TABLE institutions (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     code VARCHAR(50) UNIQUE,
+    password VARCHAR(255),
     created_at TIMESTAMP DEFAULT now()
 );
 
@@ -34,8 +35,8 @@ CREATE TABLE students (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     email VARCHAR(50) UNIQUE NOT NULL,
-    phone INT UNIQUE NOT Null,
-    password VARCHAR(10) NOT NULL,
+    phone VARCHAR(20) UNIQUE NOT NULL ,
+    password VARCHAR(255) NOT NULL,
     semester_id INT REFERENCES semesters(id),
     department_id INT REFERENCES departments(id),
     institution_id INT REFERENCES institutions(id),
@@ -48,8 +49,8 @@ CREATE TABLE teachers (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     email VARCHAR(50) UNIQUE NOT NULL,
-    phone INT UNIQUE NOT NULL,
-    password VARCHAR(10) NOT NULL,
+    phone VARCHAR(20) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
     department_id INT REFERENCES departments(id),
     designation VARCHAR(50) NOT NULL,
     role TEXT DEFAULT 'teacher',
