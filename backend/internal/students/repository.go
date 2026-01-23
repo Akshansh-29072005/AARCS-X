@@ -36,11 +36,11 @@ func (r *Repository) Create(ctx context.Context, e *StudentEntity) (*StudentEnti
 
 func (r *Repository) List(ctx context.Context, q GetStudentsRequest) ([]Student, error) {
 	rows, err := r.db.Query(ctx,
-		`SELECT id, name, semester, department, institution
+		`SELECT id, name, semester_id, department_id, institution_id
 		FROM students
-		WHERE ($1 = 0 OR branch = $1)
-		AND ($2 = '' OR semester = $2)
-		AND ($3 = 0 OR institution = $3)`,
+		WHERE ($1 = 0 OR semester_id = $1)
+		AND ($2 = 0 OR department_id = $2)
+		AND ($3 = 0 OR institution_id = $3)`,
 		q.SemesterId, q.DepartmentId, q.InstitutionId,
 	)
 
@@ -77,9 +77,9 @@ func (r *Repository) Count(ctx context.Context, q GetStudentsRequest) (int, erro
 	var total int
 	err := r.db.QueryRow(ctx,
 		`SELECT COUNT(*) FROM students
-			 WHERE ($1 = 0 OR branch = $1)
-			 AND ($2 = '' OR semester = $2)
-			 AND ($3 = 0 OR institution = $3)`,
+			 WHERE ($1 = 0 OR semester_id = $1)
+			 AND ($2 = 0 OR department_id = $2)
+			 AND ($3 = 0 OR institution_id = $3)`,
 		q.SemesterId, q.DepartmentId, q.InstitutionId,
 	).Scan(&total)
 	return total, err

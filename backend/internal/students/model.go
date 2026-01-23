@@ -8,8 +8,8 @@ type Student struct {
 	Email         string    `json:"email" db:"email"`
 	Phone         string    `json:"phone" db:"phone"`
 	Password      string    `json:"password" db:"password"`
-	SemesterId    int       `json:"semester" db:"semester_id"`
-	DepartmentId  int       `json:"department" db:"department"`
-	InstitutionId int       `json:"institution" db:"institution"`
+	SemesterId    int       `json:"semester_id" db:"semester_id"`
+	DepartmentId  int       `json:"department_id" db:"department_id"`
+	InstitutionId int       `json:"institution_id" db:"institution_id"`
 	CreatedAt     time.Time `json:"created_at" db:"created_at"`
 }
