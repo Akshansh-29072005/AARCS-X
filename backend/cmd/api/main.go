@@ -6,6 +6,7 @@ import (
 
 	// "github.com/Akshansh-29072005/AARCS-X/backend/internal/auth"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/config"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/institutes"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/database"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/server"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/students"
@@ -61,7 +62,25 @@ func main() {
 	// Auth Repository
 	// var authRepository = auth.NewRepository(pool)
 
-	// Student Service Enabling
+	/*
+		Institution Service Enabling
+	*/
+
+	// Institution Repository
+	var institutionRepository = institutes.NewRepository(pool)
+
+	// Institution Service
+	var institutionService = institutes.NewService(institutionRepository)
+
+	// Institution Handler
+	var institutionHandler = institutes.NewHandler(institutionService)
+
+	// Institution Routes
+	institutes.RegisterRoutes(router, institutionHandler)
+
+	/*
+		Student Service Enabling
+	*/
 
 	// Student Repository
 	var studentRepository = students.NewRepository(pool)
@@ -75,7 +94,9 @@ func main() {
 	// Student Routes
 	students.RegisterRoutes(router, studentHandler)
 
-	// Teacher Service Enabling
+	/*
+		Teacher Service Enabling
+	*/
 
 	// Teacher Repository
 	var teacherRepository = teachers.NewRepository(pool)
