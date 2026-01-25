@@ -12,7 +12,9 @@ CREATE TABLE departments (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     code VARCHAR(50) UNIQUE,
-    institution_id INT REFERENCES institutions(id)
+    head_of_department TEXT NOT NULL,
+    institution_id INT REFERENCES institutions(id),
+    created_at TIMESTAMP DEFAULT now()
 );
 
 -- Semester Table
