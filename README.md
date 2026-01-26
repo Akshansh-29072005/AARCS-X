@@ -113,6 +113,7 @@ Backend — Folder-by-Folder
 - [backend/internal/students](backend/internal/students): Domain module (DTO/entity/model/repository/service/handler/routes). Advantages: clean layering, testable components, easier evolution.
 - [backend/internal/teachers](backend/internal/teachers): Same structure as `students`. Advantages: consistency, isolated business logic.
 - [backend/internal/institutes](backend/internal/institutes): Scaffolding for institute domain. Advantages: future expansion without touching core infra.
+- [backend/internal/departments](backend/internal/departments): Same structure as `institutes` including (DTO/entity/model/repository/service/handler/routes).
 - [backend/internal/auth](backend/internal/auth): Scaffolding for authentication flows (JWT/OAuth). Advantages: clear boundary for security-critical code.
 - [backend/migrations](backend/migrations): SQL migration files (`up`/`down`). Advantages: deterministic schema changes, CI-safe database evolution.
 - [backend/tmp](backend/tmp): Scratch/build artifacts during dev. Advantages: keeps repo clean by isolating transient files.
