@@ -10,6 +10,7 @@ import (
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/institutes"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/database"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/server"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/semesters"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/students"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/teachers"
 	"github.com/gin-contrib/cors"
@@ -38,6 +39,8 @@ func main() {
 	log.Println("Starting AARCS-X API server...")
 
 	var router = gin.Default()
+
+	//gin.SetMode(gin.ReleaseMode)
 
 	err = router.SetTrustedProxies(nil)
 	if err != nil {
@@ -94,6 +97,22 @@ func main() {
 
 	// Department Routes
 	departments.RegisterRoutes(router, departmentHandler)
+
+	/*
+		Semester Service Enabling
+	*/
+
+	// Semester Repository
+	var semestersRepository = semesters.NewRepository(pool)
+
+	// Semester Service
+	var semestersService = semesters.NewService(semestersRepository)
+
+	// Semester Handler
+	var semestersHandler = semesters.NewHandler(semestersService)
+
+	// Semester Routes
+	semesters.RegisterRoutes(router, semestersHandler)
 
 	/*
 		Student Service Enabling
