@@ -21,7 +21,7 @@ CREATE TABLE departments (
 CREATE TABLE semesters (
     id SERIAL PRIMARY KEY,
     number INT NOT NULL,
-    department_id INT REFERENCES departments(id)
+    department_id INT REFERENCES departments(id),
     created_at TIMESTAMP DEFAULT now()
 );
 
@@ -30,7 +30,7 @@ CREATE TABLE subjects (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     code TEXT NOT NULL,
-    semester_id INT REFERENCES semesters(id)
+    semester_id INT REFERENCES semesters(id),
     created_at TIMESTAMP DEFAULT now()
 );
 
