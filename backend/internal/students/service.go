@@ -1,6 +1,10 @@
 package students
 
-import "context"
+import (
+	"context"
+
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/utlis"
+)
 
 type Service struct {
 	repo *Repository
@@ -11,11 +15,17 @@ func NewService(repo *Repository) *Service {
 }
 
 func (s *Service) CreateStudent(ctx context.Context, req CreateStudentRequest) (*Student, error) {
+
+	hashedPassword, err := utlis.HashPassword(req.Password)
+	if err != nil {
+		return nil, err
+	}
+
 	entity := &StudentEntity{
 		Name:          req.Name,
 		Email:         req.Email,
 		Phone:         req.Phone,
-		Password:      req.Password,
+		Password:      hashedPassword,
 		SemesterId:    req.SemesterId,
 		DepartmentId:  req.DepartmentId,
 		InstitutionId: req.InstitutionId,
