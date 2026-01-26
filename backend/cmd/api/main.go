@@ -12,6 +12,7 @@ import (
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/server"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/semesters"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/students"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/subjects"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/teachers"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -70,14 +71,16 @@ func main() {
 		Institution Service Enabling
 	*/
 
-	// Institution Repository
-	var institutionRepository = institutes.NewRepository(pool)
+	var (
+		// Institution Repository
+		institutionRepository = institutes.NewRepository(pool)
 
-	// Institution Service
-	var institutionService = institutes.NewService(institutionRepository)
+		// Institution Service
+		institutionService = institutes.NewService(institutionRepository)
 
-	// Institution Handler
-	var institutionHandler = institutes.NewHandler(institutionService)
+		// Institution Handler
+		institutionHandler = institutes.NewHandler(institutionService)
+	)
 
 	// Institution Routes
 	institutes.RegisterRoutes(router, institutionHandler)
@@ -86,14 +89,16 @@ func main() {
 		Department Service Enabling
 	*/
 
-	// Department Repository
-	var departmentRepository = departments.NewRepository(pool)
+	var (
+		// Department Repository
+		departmentRepository = departments.NewRepository(pool)
 
-	// Department Service
-	var departmentService = departments.NewService(departmentRepository)
+		// Department Service
+		departmentService = departments.NewService(departmentRepository)
 
-	// Department Handler
-	var departmentHandler = departments.NewHandler(departmentService)
+		// Department Handler
+		departmentHandler = departments.NewHandler(departmentService)
+	)
 
 	// Department Routes
 	departments.RegisterRoutes(router, departmentHandler)
@@ -102,49 +107,73 @@ func main() {
 		Semester Service Enabling
 	*/
 
-	// Semester Repository
-	var semestersRepository = semesters.NewRepository(pool)
+	var (
+		// Semester Repository
+		semestersRepository = semesters.NewRepository(pool)
 
-	// Semester Service
-	var semestersService = semesters.NewService(semestersRepository)
+		// Semester Service
+		semestersService = semesters.NewService(semestersRepository)
 
-	// Semester Handler
-	var semestersHandler = semesters.NewHandler(semestersService)
+		// Semester Handler
+		semestersHandler = semesters.NewHandler(semestersService)
+	)
 
 	// Semester Routes
 	semesters.RegisterRoutes(router, semestersHandler)
 
 	/*
-		Student Service Enabling
+		Subject Service Enabling
 	*/
 
-	// Student Repository
-	var studentRepository = students.NewRepository(pool)
+	var (
+		// Subject Repository
+		subjectRepository = subjects.NewRepository(pool)
 
-	// Student Service
-	var studentService = students.NewService(studentRepository)
+		// Subject Service
+		subjectsService = subjects.NewService(subjectRepository)
 
-	// Student Handler
-	var studentHandler = students.NewHandler(studentService)
+		// Subject handler
+		subjectHandler = subjects.NewHandler(subjectsService)
+	)
 
-	// Student Routes
-	students.RegisterRoutes(router, studentHandler)
+	// Subject Routes
+	subjects.RegisterRoutes(router, subjectHandler)
 
 	/*
 		Teacher Service Enabling
 	*/
 
-	// Teacher Repository
-	var teacherRepository = teachers.NewRepository(pool)
+	var (
+		// Teacher Repository
+		teacherRepository = teachers.NewRepository(pool)
 
-	// Teacher Service
-	var teacherService = teachers.NewService(teacherRepository)
+		// Teacher Service
+		teacherService = teachers.NewService(teacherRepository)
 
-	// Teacher Handler
-	var teacherHandler = teachers.NewHandler(teacherService)
+		// Teacher Handler
+		teacherHandler = teachers.NewHandler(teacherService)
+	)
 
 	// Teacher Routes
 	teachers.RegisteredRoutes(router, teacherHandler)
+
+	/*
+		Student Service Enabling
+	*/
+
+	var (
+		// Student Repository
+		studentRepository = students.NewRepository(pool)
+
+		// Student Service
+		studentService = students.NewService(studentRepository)
+
+		// Student Handler
+		studentHandler = students.NewHandler(studentService)
+	)
+
+	// Student Routes
+	students.RegisterRoutes(router, studentHandler)
 
 	if err = router.Run(":" + cfg.Port); err != nil {
 		log.Fatal("Failed to start server:", err)
