@@ -1,6 +1,10 @@
 package institutes
 
-import "context"
+import (
+	"context"
+
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/utlis"
+)
 
 type Service struct {
 	repo *Repository
@@ -11,10 +15,16 @@ func NewService(repo *Repository) *Service {
 }
 
 func (s *Service) CreateInstitution(ctx context.Context, req CreateInstitutionRequest) (*Institute, error) {
+
+	hashedPassword, err := utlis.HashPassword(req.Password)
+	if err != nil {
+		return nil, err
+	}
+
 	entity := &InstitutionEntity{
 		Name:     req.Name,
 		Code:     req.Code,
-		Password: req.Password,
+		Password: hashedPassword,
 	}
 
 	saved, err := s.repo.Create(ctx, entity)
