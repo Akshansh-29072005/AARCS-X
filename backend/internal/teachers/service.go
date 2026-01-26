@@ -2,6 +2,8 @@ package teachers
 
 import (
 	"context"
+
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/utlis"
 )
 
 type Service struct {
@@ -13,13 +15,19 @@ func NewService(repo *Repository) *Service {
 }
 
 func (s *Service) CreateTeacher(ctx context.Context, req CreateTeacherRequest) (*Teacher, error) {
+
+	hashedPassword, err := utlis.HashPassword(req.Password)
+	if err != nil {
+		return nil, err
+	}
+
 	entity := &TeacherEntity{
-		FirstName:   req.FirstName,
-		LastName:    req.LastName,
-		Email:       req.Email,
-		Phone:       req.Phone,
-		Department:  req.Department,
-		Designation: req.Designation,
+		Name:         req.Name,
+		Email:        req.Email,
+		Phone:        req.Phone,
+		Password:     hashedPassword,
+		DepartmentId: req.DepartmentId,
+		Designation:  req.Designation,
 	}
 
 	saved, err := s.repo.Create(ctx, entity)
@@ -28,15 +36,13 @@ func (s *Service) CreateTeacher(ctx context.Context, req CreateTeacherRequest) (
 	}
 
 	return &Teacher{
-		ID:          saved.ID,
-		FirstName:   saved.FirstName,
-		LastName:    saved.LastName,
-		Email:       saved.Email,
-		Phone:       saved.Phone,
-		Department:  saved.Department,
-		Designation: saved.Designation,
-		CreatedAt:   saved.CreatedAt,
-		UpdatedAt:   saved.UpdatedAt,
+		ID:           saved.ID,
+		Name:         saved.Name,
+		Email:        saved.Email,
+		Phone:        saved.Phone,
+		DepartmentId: saved.DepartmentId,
+		Designation:  saved.Designation,
+		CreatedAt:    saved.CreatedAt,
 	}, nil
 }
 
@@ -55,11 +61,10 @@ func (s *Service) GetTeachers(ctx context.Context, q GetTeachersRequest) (*GetTe
 
 	for _, e := range entities {
 		teachers = append(teachers, TeacherListItem{
-			ID:          e.ID,
-			FirstName:   e.FirstName,
-			LastName:    e.LastName,
-			Department:  e.Department,
-			Designation: e.Designation,
+			ID:           e.ID,
+			Name:         e.Name,
+			DepartmentId: e.DepartmentId,
+			Designation:  e.Designation,
 		})
 	}
 
