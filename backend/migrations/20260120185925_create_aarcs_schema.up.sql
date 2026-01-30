@@ -4,6 +4,7 @@ CREATE TABLE institutions (
     name TEXT NOT NULL,
     code VARCHAR(50) UNIQUE,
     password VARCHAR(255),
+    role TEXT DEFAULT 'admin',
     created_at TIMESTAMP DEFAULT now()
 );
 
