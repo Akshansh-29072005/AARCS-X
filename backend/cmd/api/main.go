@@ -67,10 +67,6 @@ func main() {
 	// Auth Repository
 	// var authRepository = auth.NewRepository(pool)
 
-	/*
-		Institution Service Enabling
-	*/
-
 	var (
 		// Institution Repository
 		institutionRepository = institutes.NewRepository(pool)
@@ -80,16 +76,7 @@ func main() {
 
 		// Institution Handler
 		institutionHandler = institutes.NewHandler(institutionService)
-	)
 
-	// Institution Routes
-	institutes.RegisterRoutes(router, institutionHandler)
-
-	/*
-		Department Service Enabling
-	*/
-
-	var (
 		// Department Repository
 		departmentRepository = departments.NewRepository(pool)
 
@@ -98,16 +85,7 @@ func main() {
 
 		// Department Handler
 		departmentHandler = departments.NewHandler(departmentService)
-	)
 
-	// Department Routes
-	departments.RegisterRoutes(router, departmentHandler)
-
-	/*
-		Semester Service Enabling
-	*/
-
-	var (
 		// Semester Repository
 		semestersRepository = semesters.NewRepository(pool)
 
@@ -116,16 +94,7 @@ func main() {
 
 		// Semester Handler
 		semestersHandler = semesters.NewHandler(semestersService)
-	)
 
-	// Semester Routes
-	semesters.RegisterRoutes(router, semestersHandler)
-
-	/*
-		Subject Service Enabling
-	*/
-
-	var (
 		// Subject Repository
 		subjectRepository = subjects.NewRepository(pool)
 
@@ -134,16 +103,7 @@ func main() {
 
 		// Subject handler
 		subjectHandler = subjects.NewHandler(subjectsService)
-	)
 
-	// Subject Routes
-	subjects.RegisterRoutes(router, subjectHandler)
-
-	/*
-		Teacher Service Enabling
-	*/
-
-	var (
 		// Teacher Repository
 		teacherRepository = teachers.NewRepository(pool)
 
@@ -152,16 +112,7 @@ func main() {
 
 		// Teacher Handler
 		teacherHandler = teachers.NewHandler(teacherService)
-	)
 
-	// Teacher Routes
-	teachers.RegisteredRoutes(router, teacherHandler)
-
-	/*
-		Student Service Enabling
-	*/
-
-	var (
 		// Student Repository
 		studentRepository = students.NewRepository(pool)
 
@@ -171,6 +122,21 @@ func main() {
 		// Student Handler
 		studentHandler = students.NewHandler(studentService)
 	)
+
+	// Institution Routes
+	institutes.RegisterRoutes(router, institutionHandler)
+
+	// Department Routes
+	departments.RegisterRoutes(router, departmentHandler)
+
+	// Semester Routes
+	semesters.RegisterRoutes(router, semestersHandler)
+
+	// Subject Routes
+	subjects.RegisterRoutes(router, subjectHandler)
+
+	// Teacher Routes
+	teachers.RegisteredRoutes(router, teacherHandler)
 
 	// Student Routes
 	students.RegisterRoutes(router, studentHandler)
