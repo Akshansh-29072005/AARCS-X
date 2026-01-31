@@ -17,3 +17,10 @@ type LoginResponse struct {
 	Token string       `json:"token" binding:"required"`
 	User  UserResponse `json:"user" binding:"required"`
 }
+
+type AuthenticatedUser struct {
+	ID       int
+	Role     string
+	Email    string
+	Password string
+}
