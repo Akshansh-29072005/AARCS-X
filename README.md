@@ -247,10 +247,10 @@ Auth module status
 - Auth routes are scaffolded in [backend/internal/auth/routes.go](backend/internal/auth/routes.go) with placeholders for register/login/logout and protected `me` endpoints.
 - Wiring and implementation are still pending (not yet registered in [backend/cmd/api/main.go](backend/cmd/api/main.go)).
 
-Next production steps recommended based on current progress
+<!-- Next production steps recommended based on current progress
 - Enable the auth module and add JWT middleware; wire it into the `/api/v1` groups.
 - Add migrations for user credential hashing (bcrypt) and role-based access control.
 - Add pagination and consistent error response envelopes for list endpoints.
-- Expand observability by adding structured logs and request IDs for all routes.
+- Expand observability by adding structured logs and request IDs for all routes. -->
 
 
