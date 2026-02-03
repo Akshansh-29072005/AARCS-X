@@ -193,4 +193,64 @@ cd mobile && npx expo start
 Questions or prioritizations
 - If you want me to implement JWT auth, Swagger docs, Dockerfile + GitHub Actions, or production CORS/rate limiting now, say which to prioritize and I’ll add the code and CI next.
 
+---
+
+Backend progress update (Feb 2026)
+
+Summary of what’s been built recently
+- Migrated the backend to a consistent `/api/v1` route structure across all domains.
+- Added new domain modules: Institutions, Departments, Semesters, and Subjects with full create/read flows.
+- Expanded the database schema to support core academic structures (institutions → departments → semesters → subjects) plus users, attendance, and assessments.
+- Added system health + metrics endpoints with CPU/memory usage and DB readiness checks.
+- Introduced layered architecture (repository → service → handler) across new modules for clean separation and testability.
+
+Current API v1 routes (backend)
+- System
+	- `GET /api/v1/system/health` — health check with DB connectivity ([backend/internal/platform/server/routes.go](backend/internal/platform/server/routes.go)).
+	- `GET /api/v1/system/metrics` — CPU/memory + DB readiness ([backend/internal/platform/server/routes.go](backend/internal/platform/server/routes.go)).
+- Institutions
+	- `POST /api/v1/institutions` — create institution ([backend/internal/institutes/routes.go](backend/internal/institutes/routes.go)).
+	- `GET  /api/v1/institutions` — list/filter institutions by `name`, `code` ([backend/internal/institutes/dto.go](backend/internal/institutes/dto.go)).
+- Departments
+	- `POST /api/v1/departments` — create department ([backend/internal/departments/routes.go](backend/internal/departments/routes.go)).
+	- `GET  /api/v1/departments` — list/filter by `name`, `code`, `head_of_department`, `institution_id` ([backend/internal/departments/dto.go](backend/internal/departments/dto.go)).
+- Semesters
+	- `POST /api/v1/semesters` — create semester ([backend/internal/semesters/routes.go](backend/internal/semesters/routes.go)).
+	- `GET  /api/v1/semesters` — list/filter by `number`, `department_id` ([backend/internal/semesters/dto.go](backend/internal/semesters/dto.go)).
+- Subjects
+	- `POST /api/v1/subjects` — create subject ([backend/internal/subjects/routes.go](backend/internal/subjects/routes.go)).
+	- `GET  /api/v1/subjects` — list/filter by `name`, `code`, `semester_id` ([backend/internal/subjects/dto.go](backend/internal/subjects/dto.go)).
+- Students
+	- `POST /api/v1/students` — create student ([backend/internal/students/routes.go](backend/internal/students/routes.go)).
+	- `GET  /api/v1/students` — list/filter by `semester_id`, `department_id`, `institution_id` ([backend/internal/students/dto.go](backend/internal/students/dto.go)).
+- Teachers
+	- `POST /api/v1/teachers` — create teacher ([backend/internal/teachers/routes.go](backend/internal/teachers/routes.go)).
+	- `GET  /api/v1/teachers` — list/filter by `department_id`, `designation` ([backend/internal/teachers/dto.go](backend/internal/teachers/dto.go)).
+
+Schema evolution & migrations
+- New schema migration: [backend/migrations/20260120185925_create_aarcs_schema.up.sql](backend/migrations/20260120185925_create_aarcs_schema.up.sql)
+	- Core entities: `institutions`, `departments`, `semesters`, `subjects`, `students`, `teachers`, `users`.
+	- Academic workflow: `teacher_subjects`, `attendance`, `assessments`.
+	- Clear FK relationships align with the API domain boundaries.
+- Cleanup migration: [backend/migrations/20260120182416_drop_old_student_teacher_tables.up.sql](backend/migrations/20260120182416_drop_old_student_teacher_tables.up.sql) to remove legacy tables.
+
+Backend architecture progress
+- The domain modules now follow a consistent pattern: DTOs → Repository → Service → Handler → Routes. This makes the codebase easier to test, scale, and reason about.
+- System health is now a first-class concern with real-time metrics in [backend/internal/platform/server/routes.go](backend/internal/platform/server/routes.go), backed by database ping + OS stat sampling.
+
+Environment variables (backend)
+- [backend/.env.example](backend/.env.example) currently requires:
+	- `DATABASE_URL`
+	- `PORT`
+
+Auth module status
+- Auth routes are scaffolded in [backend/internal/auth/routes.go](backend/internal/auth/routes.go) with placeholders for register/login/logout and protected `me` endpoints.
+- Wiring and implementation are still pending (not yet registered in [backend/cmd/api/main.go](backend/cmd/api/main.go)).
+
+Next production steps recommended based on current progress
+- Enable the auth module and add JWT middleware; wire it into the `/api/v1` groups.
+- Add migrations for user credential hashing (bcrypt) and role-based access control.
+- Add pagination and consistent error response envelopes for list endpoints.
+- Expand observability by adding structured logs and request IDs for all routes.
+
 
