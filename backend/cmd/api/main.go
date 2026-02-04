@@ -4,7 +4,7 @@ import (
 	"log"
 	"log/slog"
 
-	// "github.com/Akshansh-29072005/AARCS-X/backend/internal/auth"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/auth"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/config"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/departments"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/institutes"
@@ -61,6 +61,9 @@ func main() {
 
 	//Server Status Routes
 	server.RegisterRoutes(router, pool, logger)
+
+	// Setting JWT Secret
+	auth.SetJWTSecret(cfg.JWTSecret)
 
 	// Enabling Auth Routes
 
