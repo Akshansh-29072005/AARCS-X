@@ -71,6 +71,15 @@ func main() {
 	// var authRepository = auth.NewRepository(pool)
 
 	var (
+		// Auth Repository
+		authRepository = auth.NewRepository(pool)
+
+		// Auth Service
+		authService = auth.NewService(authRepository)
+
+		// Auth Handler
+		authHandler = auth.NewHandler(authService, institutionService)
+
 		// Institution Repository
 		institutionRepository = institutes.NewRepository(pool)
 
@@ -125,6 +134,9 @@ func main() {
 		// Student Handler
 		studentHandler = students.NewHandler(studentService)
 	)
+
+	// Auth Routes
+	auth.RegisteredRoutes(router, authHandler)
 
 	// Institution Routes
 	institutes.RegisterRoutes(router, institutionHandler)
