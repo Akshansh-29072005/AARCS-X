@@ -3,7 +3,7 @@ package auth
 import (
 	"context"
 
-	"github.com/Akshansh-29072005/AARCS-X/backend/internal/utlis"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/utlis"
 )
 
 type Service struct {
@@ -29,7 +29,7 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (string, error) {
 	}
 
 	// Generate JWT
-	token, err := GenerateToken(
+	token, err := utlis.GenerateToken(
 		user.ID,
 		user.Role,
 		user.ReferenceID,
@@ -49,34 +49,34 @@ func (s *Service) RegisterInstitution(
 	createInstitution func(ctx context.Context, name string) (int, error),
 ) (string, error) {
 
-	// 1️⃣ Create institution
+	// Create institution
 	institutionID, err := createInstitution(ctx, req.InstitutionName)
 	if err != nil {
 		return "", err
 	}
 
-	// 2️⃣ Hash password
-	hashed, err := HashPassword(req.Password)
+	// Hash password
+	hashed, err := utlis.HashPassword(req.Password)
 	if err != nil {
 		return "", err
 	}
 
-	// 3️⃣ Create user
+	// Create user
 	userID, err := s.repo.CreateUser(
 		ctx,
 		req.Email,
 		hashed,
-		"institution_admin",
+		"institution",
 		&institutionID,
 	)
 	if err != nil {
 		return "", err
 	}
 
-	// 4️⃣ Issue JWT
-	return GenerateToken(
+	// Issue JWT
+	return utlis.GenerateToken(
 		userID,
-		"institution_admin",
+		"institution",
 		&institutionID,
 	)
 }

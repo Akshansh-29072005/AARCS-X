@@ -3,7 +3,7 @@ package teachers
 import (
 	"context"
 
-	"github.com/Akshansh-29072005/AARCS-X/backend/internal/utlis"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/utlis"
 )
 
 type Service struct {
