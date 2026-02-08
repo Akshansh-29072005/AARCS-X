@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Akshansh-29072005/AARCS-X/backend/internal/auth"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/utlis"
 	"github.com/gin-gonic/gin"
 )
 
@@ -32,7 +32,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		tokenString := parts[1]
 
 		// Parse & validate token
-		claims, err := auth.ParseToken(tokenString)
+		claims, err := utlis.ParseToken(tokenString)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "invalid or expired token",
