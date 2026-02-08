@@ -10,6 +10,7 @@ import (
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/institutes"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/database"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/server"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/utlis"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/semesters"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/students"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/subjects"
@@ -63,7 +64,7 @@ func main() {
 	server.RegisterRoutes(router, pool, logger)
 
 	// Setting JWT Secret
-	auth.SetJWTSecret(cfg.JWTSecret)
+	utlis.SetJWTSecret(cfg.JWTSecret)
 
 	// Enabling Auth Routes
 
@@ -71,15 +72,6 @@ func main() {
 	// var authRepository = auth.NewRepository(pool)
 
 	var (
-		// Auth Repository
-		authRepository = auth.NewRepository(pool)
-
-		// Auth Service
-		authService = auth.NewService(authRepository)
-
-		// Auth Handler
-		authHandler = auth.NewHandler(authService, institutionService)
-
 		// Institution Repository
 		institutionRepository = institutes.NewRepository(pool)
 
@@ -133,6 +125,15 @@ func main() {
 
 		// Student Handler
 		studentHandler = students.NewHandler(studentService)
+
+		// Auth Repository
+		authRepository = auth.NewRepository(pool)
+
+		// Auth Service
+		authService = auth.NewService(authRepository)
+
+		// Auth Handler
+		authHandler = auth.NewHandler(authService, institutionService)
 	)
 
 	// Auth Routes
