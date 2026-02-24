@@ -32,6 +32,16 @@ func (r *Repository) Create(ctx context.Context, e *TeacherEntity) (*TeacherEnti
 	return e, err
 }
 
+// CreateUser creates a user entry in the users table for authentication
+func (r *Repository) CreateUser(ctx context.Context, email, hashedPassword string, teacherID int) error {
+	query := `
+		INSERT INTO users (email, password, role, reference_id)
+		VALUES ($1, $2, $3, $4)
+	`
+	_, err := r.db.Exec(ctx, query, email, hashedPassword, "teacher", teacherID)
+	return err
+}
+
 func (r *Repository) List(ctx context.Context, q GetTeachersRequest) ([]Teacher, error) {
 	rows, err := r.db.Query(ctx,
 		`SELECT id, name, department_id, designation
