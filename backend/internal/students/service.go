@@ -11,7 +11,9 @@ type Service struct {
 }
 
 func NewService(repo *Repository) *Service {
-	return &Service{repo: repo}
+	return &Service{
+		repo: repo,
+	}
 }
 
 func (s *Service) CreateStudent(ctx context.Context, req CreateStudentRequest) (*Student, error) {
@@ -32,6 +34,12 @@ func (s *Service) CreateStudent(ctx context.Context, req CreateStudentRequest) (
 	}
 
 	saved, err := s.repo.Create(ctx, entity)
+	if err != nil {
+		return nil, err
+	}
+
+	// Create user entry for authentication
+	err = s.repo.CreateUser(ctx, req.Email, hashedPassword, saved.ID)
 	if err != nil {
 		return nil, err
 	}
