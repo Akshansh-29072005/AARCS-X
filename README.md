@@ -245,12 +245,51 @@ Environment variables (backend)
 
 Auth module status
 - Auth routes are scaffolded in [backend/internal/auth/routes.go](backend/internal/auth/routes.go) with placeholders for register/login/logout and protected `me` endpoints.
-- Wiring and implementation are still pending (not yet registered in [backend/cmd/api/main.go](backend/cmd/api/main.go)).
-
 <!-- Next production steps recommended based on current progress
 - Enable the auth module and add JWT middleware; wire it into the `/api/v1` groups.
 - Add migrations for user credential hashing (bcrypt) and role-based access control.
 - Add pagination and consistent error response envelopes for list endpoints.
 - Expand observability by adding structured logs and request IDs for all routes. -->
+
+---
+
+Backend progress update (Latest snapshot)(24 Feb 2026)
+
+This section reflects the latest backend state and supersedes earlier “auth pending” notes.
+
+What progressed significantly
+- Auth is now wired into application startup in [backend/cmd/api/main.go](backend/cmd/api/main.go): repository, service, and handler are initialized and routes are registered.
+- JWT secret bootstrapping is active through `utlis.SetJWTSecret(cfg.JWTSecret)` in [backend/cmd/api/main.go](backend/cmd/api/main.go).
+- Authentication middleware is implemented in [backend/internal/platform/middleware/auth.go](backend/internal/platform/middleware/auth.go) and validates Bearer tokens, then injects `user_id`, `role`, and `ref_id` into request context.
+- Role-based authorization helper exists in [backend/internal/platform/middleware/role.go](backend/internal/platform/middleware/role.go) via `RequireRole(...)`.
+- Auth service now supports institution registration + login flows in [backend/internal/auth/service.go](backend/internal/auth/service.go), including password hashing and JWT issuance.
+
+Current auth API status
+- Base group: `/api/v1/auth` ([backend/internal/auth/routes.go](backend/internal/auth/routes.go))
+- Public
+	- `POST /api/v1/auth/register` → Register institution + create auth user + return JWT.
+	- `POST /api/v1/auth/login` → Validate credentials + return JWT.
+- Protected (requires Bearer token)
+	- `GET /api/v1/auth/protected/me` → Returns current token identity (`user_id`, `role`, `ref_id`).
+
+Auth flow (implemented)
+1. Registration request reaches `RegisterInstitution` in [backend/internal/auth/handler.go](backend/internal/auth/handler.go).
+2. Institution is created using the institution service adapter.
+3. Password is hashed using utility functions in [backend/internal/platform/utlis/password.go](backend/internal/platform/utlis/password.go).
+4. User record is inserted in `users` through [backend/internal/auth/repository.go](backend/internal/auth/repository.go).
+5. JWT is generated via [backend/internal/platform/utlis/jwt.go](backend/internal/platform/utlis/jwt.go).
+
+Config progress
+- `JWT_SECRET` is now part of config in [backend/internal/config/config.go](backend/internal/config/config.go).
+- Important: [backend/.env.example](backend/.env.example) still lists only `DATABASE_URL` and `PORT`; add `JWT_SECRET` there to match runtime expectations.
+
+Backend maturity highlights
+- Domain modules active: `auth`, `institutes`, `departments`, `semesters`, `subjects`, `teachers`, `students`.
+- Consistent layered structure across domains (DTO/Repository/Service/Handler/Routes).
+- System observability baseline in place via:
+	- `GET /api/v1/system/health`
+	- `GET /api/v1/system/metrics`
+
+
 
 
