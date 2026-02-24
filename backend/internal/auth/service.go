@@ -46,11 +46,11 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (string, error) {
 func (s *Service) RegisterInstitution(
 	ctx context.Context,
 	req RegisterRequest,
-	createInstitution func(ctx context.Context, name string) (int, error),
+	createInstitution func(ctx context.Context, name, code, password string) (int, error),
 ) (string, error) {
 
 	// Create institution
-	institutionID, err := createInstitution(ctx, req.InstitutionName)
+	institutionID, err := createInstitution(ctx, req.InstitutionName, req.InstitutionCode, req.Password)
 	if err != nil {
 		return "", err
 	}

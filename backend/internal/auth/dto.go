@@ -29,5 +29,6 @@ type RegisterRequest struct {
 	Email           string `json:"email" binding:"required,email"`
 	Password        string `json:"password" binding:"required"`
 	InstitutionName string `json:"institution" binding:"required"`
+	InstitutionCode string `json:"institution_code" binding:"required"`
 	ReferenceId     int    `json:"reference_id,omitempty"`
 }

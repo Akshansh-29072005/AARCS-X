@@ -48,11 +48,13 @@ func (h *Handler) RegisterInstitution(c *gin.Context) {
 	}
 
 	// 🔹 Adapter function
-	createInstitution := func(ctx context.Context, name string) (int, error) {
+	createInstitution := func(ctx context.Context, name, code, password string) (int, error) {
 		inst, err := h.institutionService.CreateInstitution(
 			ctx,
 			institutes.CreateInstitutionRequest{
-				Name: name,
+				Name:     name,
+				Code:     code,
+				Password: password,
 			},
 		)
 		if err != nil {
