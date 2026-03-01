@@ -2,20 +2,20 @@
 
 This repository contains two deployable applications:
 - A Go-based backend API that manages students, teachers, institutes, and future auth flows.
-- A cross-platform mobile app built with Expo/React Native for student and faculty interactions.
+- A cross-platform mobile app built with Flutter for student and faculty interactions.
 
 The goal is to deliver reliable attendance verification and tamper-resistant academic records, with production-grade practices for security, scalability, and observability.
 
 Requirements
 - Go 1.20+ (as per [backend/go.mod](backend/go.mod)).
 - PostgreSQL 13+.
-- Node 16+ with npm or Yarn.
-- Expo tooling (`npx expo` is sufficient).
+- Flutter SDK (stable channel, Dart SDK included).
+- Platform tooling for your target (`Android Studio` / `Xcode` / `Chrome` for web).
 
 Architecture Overview
 - Backend API: Gin framework with modular `internal` packages for configuration, platform concerns (DB/HTTP/server), and domain modules (`students`, `teachers`, `institutes`, `auth`).
 - Database: Postgres via `pgx` pool. Schema migrations in [backend/migrations](backend/migrations).
-- Mobile App: Expo/React Native, modular screens under [mobile/app](mobile/app), shared components/helpers in [mobile/components](mobile/components) and [mobile/lib](mobile/lib).
+- Mobile App: Flutter app with route-driven screens under [mobile/lib/screens](mobile/lib/screens), shared UI widgets under [mobile/lib/widgets](mobile/lib/widgets), and API/services under [mobile/lib/services](mobile/lib/services).
 - Dev tooling: Live reload with Air (see [backend/.air.toml](backend/.air.toml)), example environment in [backend/.env.example](backend/.env.example).
 
 ## Why This Architecture?
@@ -123,20 +123,26 @@ Backend — Folder-by-Folder
 Mobile — Setup & Run
 ```bash
 cd mobile
-npm install
-npx expo start
+flutter pub get
+flutter run
 ```
-- Base API URL is defined in [mobile/lib/api.ts](mobile/lib/api.ts). Update to your deployed backend (e.g., `https://api.yourapp.com/api`).
+- Base API URL is defined in [mobile/lib/services/api_client.dart](mobile/lib/services/api_client.dart). Update to your deployed backend (e.g., `https://api.yourapp.com/api/v1`).
+- App entry and routing:
+	- [mobile/lib/main.dart](mobile/lib/main.dart): app bootstrap (`Provider` + `MaterialApp.router`).
+	- [mobile/lib/router.dart](mobile/lib/router.dart): navigation and auth-based route guards via `go_router`.
 - Screens:
-	- [mobile/app/(auth)](mobile/app/%28auth%29): login, signup.
-	- [mobile/app/(student)](mobile/app/%28student%29): dashboard, records, settings.
+	- [mobile/lib/screens/auth](mobile/lib/screens/auth): login, register.
+	- [mobile/lib/screens/dashboard](mobile/lib/screens/dashboard): dashboard shell.
+	- [mobile/lib/screens/students](mobile/lib/screens/students): list and add student.
+	- [mobile/lib/screens/teachers](mobile/lib/screens/teachers): list and add teacher.
+	- [mobile/lib/screens/institutions](mobile/lib/screens/institutions), [mobile/lib/screens/departments](mobile/lib/screens/departments), [mobile/lib/screens/semesters](mobile/lib/screens/semesters), [mobile/lib/screens/subjects](mobile/lib/screens/subjects).
 - Shared code:
-	- [mobile/components](mobile/components): UI primitives.
-	- [mobile/constants](mobile/constants): themes and tokens.
-	- [mobile/context](mobile/context): global app state (e.g., theme).
-	- [mobile/hooks](mobile/hooks): reusable hooks.
-	- [mobile/lib](mobile/lib): API helpers and mock data.
-- For production builds, use EAS Build or native builds, configure OTA updates and environment values via `app.json` and secure runtime config.
+	- [mobile/lib/widgets](mobile/lib/widgets): reusable UI widgets.
+	- [mobile/lib/models](mobile/lib/models): typed request/response models.
+	- [mobile/lib/services](mobile/lib/services): API integrations by domain.
+	- [mobile/lib/providers](mobile/lib/providers): app state (`AuthProvider`).
+	- [mobile/lib/theme](mobile/lib/theme): app theming.
+- For production builds, use Flutter build targets (`apk`, `appbundle`, `ipa`, `web`) and inject environment-specific API config per build flavor.
 
 Security & Compliance Checklist
 - Use `JWT_SECRET` or OAuth provider; store secrets in a vault.
@@ -186,8 +192,8 @@ migrate -path backend/migrations -database "$DATABASE_URL" up
 cd backend && go run ./cmd/api
 
 # Start mobile
-cd mobile && npx expo start
-# Update mobile/lib/api.ts to point to http://localhost:8000/api (use LAN/URL accessible by device)
+cd mobile && flutter pub get && flutter run
+# Update mobile/lib/services/api_client.dart to point to your reachable backend URL
 ```
 
 Questions or prioritizations
