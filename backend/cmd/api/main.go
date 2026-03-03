@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"log/slog"
 
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/auth"
@@ -9,6 +8,7 @@ import (
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/departments"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/institutes"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/database"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/logger"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/server"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/utlis"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/semesters"
@@ -22,31 +22,33 @@ import (
 
 func main() {
 
+	zerolog_logger := logger.NewLogger()
+	
 	var cfg *config.Config
 	var err error
 	cfg, err = config.Load()
 	if err != nil {
-		log.Fatal("Failed to load configuration:", err)
+		zerolog_logger.Error().Err(err).Msg("Failed to load configuration")
 	}
 
 	var pool *pgxpool.Pool
 	pool, err = database.Connect(cfg.DatabaseURL)
 
 	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
+		zerolog_logger.Fatal().Err(err).Msg("Failed to connect to database")
 	}
 
 	defer pool.Close()
 
-	log.Println("Starting AARCS-X API server...")
+	zerolog_logger.Info().Msg("Starting AARCS-X API server...")
 
 	var router = gin.Default()
 
-	//gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(cfg.GinMode)
 
 	err = router.SetTrustedProxies(nil)
 	if err != nil {
-		log.Fatal("Failed to set trusted proxies:", err)
+		zerolog_logger.Fatal().Err(err).Msg("Failed to set trusted proxies")
 	}
 
 	// Configuring CORS
@@ -65,11 +67,6 @@ func main() {
 
 	// Setting JWT Secret
 	utlis.SetJWTSecret(cfg.JWTSecret)
-
-	// Enabling Auth Routes
-
-	// Auth Repository
-	// var authRepository = auth.NewRepository(pool)
 
 	var (
 		// Institution Repository
@@ -158,6 +155,6 @@ func main() {
 	students.RegisterRoutes(router, studentHandler)
 
 	if err = router.Run(":" + cfg.Port); err != nil {
-		log.Fatal("Failed to start server:", err)
+		zerolog_logger.Fatal().Err(err).Msg("Failed to start server")
 	}
 }
