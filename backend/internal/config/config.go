@@ -8,9 +8,11 @@ import (
 )
 
 type Config struct {
+	GinMode	     string
 	DatabaseURL  string
-	Port        string
-	JWTSecret   string
+	Port         string
+	JWTSecret    string
+	LogLevel     string
 }
 
 func Load()(*Config, error) {
@@ -20,9 +22,11 @@ func Load()(*Config, error) {
 	}
 
 	var config*Config = &Config{
+		GinMode:     os.Getenv("GIN_MODE"),
 		DatabaseURL: os.Getenv("DATABASE_URL"),
-		Port:       os.Getenv("PORT"),
-		JWTSecret:  os.Getenv("JWT_SECRET"),
+		Port:        os.Getenv("PORT"),
+		JWTSecret:   os.Getenv("JWT_SECRET"),
+		LogLevel:    os.Getenv("LOG_LEVEL"),
 	}
 
 	return config, nil
