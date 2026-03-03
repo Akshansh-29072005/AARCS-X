@@ -1,7 +1,9 @@
 package main
 
 import (
+	"log"
 	"log/slog"
+	"strings"
 
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/auth"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/config"
@@ -21,15 +23,16 @@ import (
 )
 
 func main() {
-
-	zerolog_logger := logger.NewLogger()
 	
 	var cfg *config.Config
 	var err error
 	cfg, err = config.Load()
 	if err != nil {
-		zerolog_logger.Error().Err(err).Msg("Failed to load configuration")
+		log.Fatal(strings.Join([]string{"Failed to load configuration: ", err.Error()}, ""))
 	}
+
+	zerolog_logger := logger.NewLogger(cfg.GinMode, cfg.LogLevel)
+
 
 	var pool *pgxpool.Pool
 	pool, err = database.Connect(cfg.DatabaseURL)
