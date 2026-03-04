@@ -14,6 +14,10 @@ func NewLogger(env string, levelStr string) zerolog.Logger {
 
 	level, err := zerolog.ParseLevel(strings.ToLower(levelStr))
 
+	if levelStr == "" {
+		level = zerolog.InfoLevel
+	}
+
 	if err != nil {
 		level = zerolog.InfoLevel
 	}
@@ -26,8 +30,10 @@ func NewLogger(env string, levelStr string) zerolog.Logger {
 
 		logger = zerolog.New(os.Stdout).
 			With().
-			Str("service", "AARCS-X").
+			Str("service", "aarcs-x").
 			Timestamp().
+			Int("pid", os.Getpid()).
+			Caller().
 			Logger()
 
 	} else {
@@ -39,8 +45,10 @@ func NewLogger(env string, levelStr string) zerolog.Logger {
 
 		logger = zerolog.New(consoleWriter).
 			With().
-			Str("service", "AARCS-X").
+			Str("service", "aarcs-x").
 			Timestamp().
+			Int("pid", os.Getpid()).
+			Caller().
 			Logger()
 	}
 

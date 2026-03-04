@@ -1,8 +1,6 @@
 package main
 
 import (
-	"log"
-	"strings"
 
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/auth"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/config"
@@ -27,22 +25,22 @@ func main() {
 	var err error
 	cfg, err = config.Load()
 	if err != nil {
-		log.Fatal(strings.Join([]string{"Failed to load configuration: ", err.Error()}, ""))
+		panic("failed to load configuration: " + err.Error())
 	}
 
-	zerolog_logger := logger.NewLogger(cfg.GinMode, cfg.LogLevel)
+	appLogger := logger.NewLogger(cfg.GinMode, cfg.LogLevel)
 
 
 	var pool *pgxpool.Pool
 	pool, err = database.Connect(cfg.DatabaseURL)
 
 	if err != nil {
-		zerolog_logger.Fatal().Err(err).Msg("Failed to connect to database")
+		appLogger.Fatal().Err(err).Msg("Failed to connect to database")
 	}
 
 	defer pool.Close()
 
-	zerolog_logger.Info().Msg("Starting AARCS-X API server...")
+	appLogger.Info().Msg("Starting AARCS-X API server...")
 
 	var router = gin.Default()
 
@@ -50,7 +48,7 @@ func main() {
 
 	err = router.SetTrustedProxies(nil)
 	if err != nil {
-		zerolog_logger.Fatal().Err(err).Msg("Failed to set trusted proxies")
+		appLogger.Fatal().Err(err).Msg("Failed to set trusted proxies")
 	}
 
 	// Configuring CORS
@@ -63,7 +61,7 @@ func main() {
 	}))
 
 	//Server Status Routes
-	server.RegisterRoutes(router, pool, zerolog_logger)
+	server.RegisterRoutes(router, pool, appLogger)
 
 	// Setting JWT Secret
 	utlis.SetJWTSecret(cfg.JWTSecret)
@@ -155,6 +153,6 @@ func main() {
 	students.RegisterRoutes(router, studentHandler)
 
 	if err = router.Run(":" + cfg.Port); err != nil {
-		zerolog_logger.Fatal().Err(err).Msg("Failed to start server")
+		appLogger.Fatal().Err(err).Msg("Failed to start server")
 	}
 }
