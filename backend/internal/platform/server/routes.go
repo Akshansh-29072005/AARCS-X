@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"log/slog"
 	"sync"
 	"time"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/mackerelio/go-osstat/cpu"
 	"github.com/mackerelio/go-osstat/memory"
+	"github.com/rs/zerolog"
 )
 
 const (
@@ -34,13 +34,13 @@ type HealthMetrics struct {
 // HealthService manages system health monitoring
 type HealthService struct {
 	metrics *HealthMetrics
-	logger  *slog.Logger
+	logger  zerolog.Logger
 	pool    *pgxpool.Pool
 	done    chan struct{}
 }
 
 // NewHealthService creates a new health service instance
-func NewHealthService(pool *pgxpool.Pool, logger *slog.Logger) *HealthService {
+func NewHealthService(pool *pgxpool.Pool, logger zerolog.Logger) *HealthService {
 	return &HealthService{
 		metrics: &HealthMetrics{},
 		logger:  logger,
@@ -52,13 +52,13 @@ func NewHealthService(pool *pgxpool.Pool, logger *slog.Logger) *HealthService {
 // Start begins the background health monitoring goroutine
 func (hs *HealthService) Start(ctx context.Context) {
 	go hs.monitorHealth(ctx)
-	hs.logger.Info("health service started")
+	hs.logger.Info().Str("component", "health_service").Msg("health service started")
 }
 
 // Stop gracefully stops the health monitoring
 func (hs *HealthService) Stop() {
 	close(hs.done)
-	hs.logger.Info("health service stopped")
+	hs.logger.Info().Str("component", "health_service").Msg("health service stopped")
 }
 
 // monitorHealth continuously updates system metrics
@@ -86,14 +86,14 @@ func (hs *HealthService) updateMetrics() {
 	// Get memory stats
 	memStats, err := memory.Get()
 	if err != nil {
-		hs.logger.Warn("failed to get memory stats", "error", err)
+		hs.logger.Warn().Err(err).Msg("failed to get memory stats")
 		return
 	}
 
 	// Get CPU usage
 	cpuUsage, err := hs.calculateCPUUsage()
 	if err != nil {
-		hs.logger.Warn("failed to calculate cpu usage", "error", err)
+		hs.logger.Warn().Err(err).Msg("failed to calculate cpu usage")
 		return
 	}
 
@@ -106,11 +106,7 @@ func (hs *HealthService) updateMetrics() {
 	hs.metrics.LastUpdated = time.Now()
 	hs.metrics.mu.Unlock()
 
-	hs.logger.Debug("metrics updated",
-		"cpu_usage", cpuUsage,
-		"memory_used_mb", hs.metrics.UsedMemory,
-		"memory_total_mb", hs.metrics.TotalMemory,
-	)
+	hs.logger.Debug().Float64("cpu_usage", cpuUsage).Uint64("memory_used_mb", hs.metrics.UsedMemory).Uint64("memory_total_mb", hs.metrics.TotalMemory).Msg("metrics updated")
 }
 
 // calculateCPUUsage returns CPU usage percentage
@@ -173,7 +169,7 @@ type SystemMetricsResponse struct {
 }
 
 // RegisterRoutes sets up all API routes
-func RegisterRoutes(router *gin.Engine, pool *pgxpool.Pool, logger *slog.Logger) {
+func RegisterRoutes(router *gin.Engine, pool *pgxpool.Pool, logger zerolog.Logger) {
 	// Initialize health service
 	healthService := NewHealthService(pool, logger)
 	healthService.Start(context.Background())
@@ -210,5 +206,5 @@ func RegisterRoutes(router *gin.Engine, pool *pgxpool.Pool, logger *slog.Logger)
 		c.JSON(200, response)
 	})
 
-	logger.Info("routes registered successfully")
+	logger.Info().Str("component", "server_routes").Msg("API routes registered")
 }

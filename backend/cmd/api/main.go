@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"log/slog"
 	"strings"
 
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/auth"
@@ -63,10 +62,8 @@ func main() {
 		AllowCredentials: false,
 	}))
 
-	var logger = slog.Default()
-
 	//Server Status Routes
-	server.RegisterRoutes(router, pool, logger)
+	server.RegisterRoutes(router, pool, zerolog_logger)
 
 	// Setting JWT Secret
 	utlis.SetJWTSecret(cfg.JWTSecret)
