@@ -19,7 +19,7 @@ func RequestLogger(log zerolog.Logger) gin.HandlerFunc {
         }
 
 		start := time.Now()
-
+		requestID := c.GetString("RequestID")
 		method := c.Request.Method
 		clientIP := c.ClientIP()
 
@@ -29,6 +29,7 @@ func RequestLogger(log zerolog.Logger) gin.HandlerFunc {
 		status := c.Writer.Status()
 
 		log.Info().
+			Str("requestID", requestID).
 			Str("method", method).
 			Str("path", path).
 			Str("client_ip", clientIP).
