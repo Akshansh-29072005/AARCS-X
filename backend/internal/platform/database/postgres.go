@@ -2,20 +2,29 @@ package database
 
 import (
 	"context"
-	"log"
 
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/config"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/logger"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func Connect(databaseURL string) (*pgxpool.Pool, error) {
+
+	var cfg *config.Config
+	var err error
+	cfg, err = config.Load()
+	if err != nil {
+		panic("failed to load configuration: " + err.Error())
+	}
+	appLogger := logger.NewLogger(cfg.GinMode, cfg.LogLevel)
+
 	var ctx context.Context = context.Background()
 
 	var config *pgxpool.Config
-	var err error
 	config, err = pgxpool.ParseConfig(databaseURL)
 
 	if err != nil {
-		log.Printf("Unable to parse DATABASE_URL: %v", err)
+		appLogger.Fatal().Err(err).Msg("Unable to parse database URL")
 		return nil, err
 	}
 
@@ -23,18 +32,18 @@ func Connect(databaseURL string) (*pgxpool.Pool, error) {
 	pool, err = pgxpool.NewWithConfig(ctx, config)
 
 	if err != nil {
-		log.Printf("Unable to create connection pool: %v", err)
+		appLogger.Fatal().Err(err).Msg("Unable to create connection pool")
 		return nil, err 
 	}
 
 	err = pool.Ping(ctx)
 
 	if err != nil {
-		log.Printf("Unable to connect to database: %v", err)
+		appLogger.Fatal().Err(err).Msg("Unable to connect to database")
 		pool.Close()
 		return nil, err
 	}
 
-	log.Println("Connected to the database successfully")
+	appLogger.Info().Msg("Connected to the database successfully")
 	return pool, nil
 }
