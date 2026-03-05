@@ -1,13 +1,13 @@
 package main
 
 import (
-
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/auth"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/config"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/departments"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/institutes"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/database"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/logger"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/middleware"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/server"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/utlis"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/semesters"
@@ -42,7 +42,9 @@ func main() {
 
 	appLogger.Info().Msg("Starting AARCS-X API server...")
 
-	var router = gin.Default()
+	var router = gin.New()
+	router.Use(gin.Recovery())
+	router.Use(middleware.RequestLogger(appLogger))
 
 	gin.SetMode(cfg.GinMode)
 
