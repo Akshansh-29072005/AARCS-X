@@ -10,9 +10,16 @@ import (
 func RequestLogger(log zerolog.Logger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
+		path := c.Request.URL.Path
+
+		// Skip infrastructure endpoints
+        if path == "/api/v1/system/metrics" || path == "/api/v1/system/health" {
+            c.Next()
+            return
+        }
+
 		start := time.Now()
 
-		path := c.Request.URL.Path
 		method := c.Request.Method
 		clientIP := c.ClientIP()
 
