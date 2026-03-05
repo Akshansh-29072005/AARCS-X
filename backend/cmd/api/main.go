@@ -20,7 +20,8 @@ import (
 )
 
 func main() {
-	
+
+	// Loading configuration
 	var cfg *config.Config
 	var err error
 	cfg, err = config.Load()
@@ -28,9 +29,10 @@ func main() {
 		panic("failed to load configuration: " + err.Error())
 	}
 
+	// Initializing logger
 	appLogger := logger.NewLogger(cfg.GinMode, cfg.LogLevel)
 
-
+	// Connecting to database
 	var pool *pgxpool.Pool
 	pool, err = database.Connect(cfg.DatabaseURL)
 
@@ -40,14 +42,19 @@ func main() {
 
 	defer pool.Close()
 
+	// Starting server
 	appLogger.Info().Msg("Starting AARCS-X API server...")
 
+	// Setting up Gin router and middleware
 	var router = gin.New()
 	router.Use(gin.Recovery())
+	router.Use(middleware.RequestID())
 	router.Use(middleware.RequestLogger(appLogger))
 
+	// Setting Gin mode
 	gin.SetMode(cfg.GinMode)
 
+	//Setting trusted proxies to nil to disable Gin's default behavior of trusting all proxies
 	err = router.SetTrustedProxies(nil)
 	if err != nil {
 		appLogger.Fatal().Err(err).Msg("Failed to set trusted proxies")

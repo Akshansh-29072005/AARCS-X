@@ -10,6 +10,7 @@ import (
 
 func NewLogger(env string, levelStr string) zerolog.Logger {
 
+	// Setting time format for zerolog to RFC3339
 	zerolog.TimeFieldFormat = time.RFC3339
 
 	level, err := zerolog.ParseLevel(strings.ToLower(levelStr))
