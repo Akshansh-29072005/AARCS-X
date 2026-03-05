@@ -106,7 +106,7 @@ func (hs *HealthService) updateMetrics() {
 	hs.metrics.LastUpdated = time.Now()
 	hs.metrics.mu.Unlock()
 
-	hs.logger.Debug().Float64("cpu_usage", cpuUsage).Uint64("memory_used_mb", hs.metrics.UsedMemory).Uint64("memory_total_mb", hs.metrics.TotalMemory).Msg("metrics updated")
+	// hs.logger.Debug().Float64("cpu_usage", cpuUsage).Uint64("memory_used_mb", hs.metrics.UsedMemory).Uint64("memory_total_mb", hs.metrics.TotalMemory).Msg("metrics updated")
 }
 
 // calculateCPUUsage returns CPU usage percentage
