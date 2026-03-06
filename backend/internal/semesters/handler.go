@@ -3,6 +3,7 @@ package semesters
 import (
 	"net/http"
 
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,6 +16,12 @@ func NewHandler(service *Service) *Handler {
 }
 
 func (h *Handler) CreateSemester(c *gin.Context) {
+
+	log := middleware.GetLogger(c)
+	log.Info().
+		Str("component", "semesters_handler").
+		Msg("Received request to create semester")
+
 	var req CreateSemesterRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -29,9 +36,19 @@ func (h *Handler) CreateSemester(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, semester)
+
+	log.Info().
+		Str("component", "semesters_handler").
+		Msg("Semester created successfully")
 }
 
 func (h *Handler) Read(c *gin.Context) {
+
+	log := middleware.GetLogger(c)
+	log.Info().
+		Str("component", "semesters_handler").
+		Msg("Received request to read semesters")
+
 	var req GetSemestersRequest
 
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -46,4 +63,8 @@ func (h *Handler) Read(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
+
+	log.Info().
+		Str("component", "semesters_handler").
+		Msg("Semesters retrieved successfully")
 }

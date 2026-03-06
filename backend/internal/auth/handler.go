@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/institutes"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,6 +23,12 @@ func NewHandler(service *Service, institutionService *institutes.Service) *Handl
 
 // Login Handler
 func (h *Handler) Login(c *gin.Context) {
+
+	log := middleware.GetLogger(c)
+	log.Info().
+		Str("component", "auth_handler").
+		Msg("Received login request")
+
 	var req LoginRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -36,10 +43,20 @@ func (h *Handler) Login(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"token": token})
+
+	log.Info().
+		Str("component", "auth_handler").
+		Msg("Login successful")
 }
 
 // RegisterInstitution Handler
 func (h *Handler) RegisterInstitution(c *gin.Context) {
+
+	log := middleware.GetLogger(c)
+	log.Info().
+		Str("component", "auth_handler").
+		Msg("Received institution registration request")
+	
 	var req RegisterRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -75,13 +92,27 @@ func (h *Handler) RegisterInstitution(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"token": token})
+
+	log.Info().
+		Str("component", "auth_handler").
+		Msg("Institution registered successfully")
 }
 
 // Me route handler
 func (h *Handler) Me(c *gin.Context) {
+
+	log := middleware.GetLogger(c)
+	log.Info().
+		Str("component", "auth_handler").
+		Msg("Received request for user info")
+	
 	c.JSON(http.StatusOK, gin.H{
 		"user_id": c.GetInt("user_id"),
 		"role":    c.GetString("role"),
 		"ref_id":  c.MustGet("ref_id"),
 	})
+
+	log.Info().
+		Str("component", "auth_handler").
+		Msg("User info retrieved successfully")
 }

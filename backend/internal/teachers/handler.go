@@ -3,6 +3,7 @@ package teachers
 import (
 	"net/http"
 
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,6 +16,12 @@ func NewHandler(service *Service) *Handler {
 }
 
 func (h *Handler) CreateTeacher(c *gin.Context) {
+
+	log := middleware.GetLogger(c)
+	log.Info().
+		Str("component", "teachers_handler").
+		Msg("Received request to create teacher")
+
 	var req CreateTeacherRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -27,9 +34,19 @@ func (h *Handler) CreateTeacher(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, teacher)
+
+	log.Info().
+		Str("component", "teachers_handler").
+		Msg("Teacher created successfully")
 }
 
 func (h *Handler) Read(c *gin.Context) {
+
+	log := middleware.GetLogger(c)
+	log.Info().
+		Str("component", "teachers_handler").
+		Msg("Received request to read teachers")
+
 	var req GetTeachersRequest
 
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -44,4 +61,8 @@ func (h *Handler) Read(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
+
+	log.Info().
+		Str("component", "teachers_handler").
+		Msg("Teachers retrieved successfully")
 }

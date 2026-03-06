@@ -3,6 +3,7 @@ package institutes
 import (
 	"net/http"
 
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,6 +16,12 @@ func NewHandler(service *Service) *Handler {
 }
 
 func (h *Handler) CreateInstitute(c *gin.Context) {
+
+	log := middleware.GetLogger(c)
+	log.Info().
+		Str("component", "institutes_handler").
+		Msg("Received request to create institute")
+
 	var req CreateInstitutionRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -29,9 +36,19 @@ func (h *Handler) CreateInstitute(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, institute)
+
+	log.Info().
+		Str("component", "institutes_handler").
+		Msg("Institute created successfully")
 }
 
 func (h *Handler) Read(c *gin.Context) {
+
+	log := middleware.GetLogger(c)
+	log.Info().
+		Str("component", "institutes_handler").
+		Msg("Received request to read institutes")
+
 	var req GetInstitutionRequest
 
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -46,4 +63,8 @@ func (h *Handler) Read(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response)
+
+	log.Info().
+		Str("component", "institutes_handler").
+		Msg("Institutes retrieved successfully")
 }
