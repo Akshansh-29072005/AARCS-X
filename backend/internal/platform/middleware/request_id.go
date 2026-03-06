@@ -10,7 +10,7 @@ func RequestID() gin.HandlerFunc {
 
 		requestID := uuid.New().String()
 
-		c.Set("RequestID", requestID)
+		c.Set(RequestIDKey, requestID)
 
 		c.Writer.Header().Set("X-Request-ID", requestID)
 

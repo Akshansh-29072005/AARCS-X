@@ -4,10 +4,9 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog"
 )
 
-func RequestLogger(log zerolog.Logger) gin.HandlerFunc {
+func RequestLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		path := c.Request.URL.Path
@@ -19,8 +18,6 @@ func RequestLogger(log zerolog.Logger) gin.HandlerFunc {
         }
 
 		start := time.Now()
-		requestID := c.GetString("RequestID")
-		method := c.Request.Method
 		clientIP := c.ClientIP()
 
 		c.Next()
@@ -28,10 +25,9 @@ func RequestLogger(log zerolog.Logger) gin.HandlerFunc {
 		latency := time.Since(start)
 		status := c.Writer.Status()
 
+		log := GetLogger(c)
+
 		log.Info().
-			Str("requestID", requestID).
-			Str("method", method).
-			Str("path", path).
 			Str("client_ip", clientIP).
 			Int("status", status).
 			Dur("latency", latency).
