@@ -49,7 +49,8 @@ func main() {
 	var router = gin.New()
 	router.Use(gin.Recovery())
 	router.Use(middleware.RequestID())
-	router.Use(middleware.RequestLogger(appLogger))
+	router.Use(middleware.LoggerMiddleware(appLogger))
+	router.Use(middleware.RequestLogger())
 
 	// Setting Gin mode
 	gin.SetMode(cfg.GinMode)
