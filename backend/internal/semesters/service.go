@@ -1,6 +1,10 @@
 package semesters
 
-import "context"
+import (
+	"context"
+
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/errors"
+)
 
 type Service struct {
 	repo *Repository
@@ -18,7 +22,7 @@ func (s *Service) CreateSemesters(ctx context.Context, req CreateSemesterRequest
 
 	saved, err := s.repo.Create(ctx, entity)
 	if err != nil {
-		return nil, err
+		return nil, errors.FromPostgresError(err)
 	}
 
 	return &Semester{
@@ -32,12 +36,12 @@ func (s *Service) CreateSemesters(ctx context.Context, req CreateSemesterRequest
 func (s *Service) GetSemesters(ctx context.Context, q GetSemestersRequest) (*GetSemestersResponse, error) {
 	entities, err := s.repo.List(ctx, q)
 	if err != nil {
-		return nil, err
+		return nil, errors.FromPostgresError(err)
 	}
 
 	total, err := s.repo.Count(ctx, q)
 	if err != nil {
-		return nil, err
+		return nil, errors.FromPostgresError(err)
 	}
 
 	semesters := make([]SemesterListItem, 0, len(entities))

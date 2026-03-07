@@ -1,6 +1,10 @@
 package subjects
 
-import "context"
+import (
+	"context"
+
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/errors"
+)
 
 type Service struct {
 	repo *Repository
@@ -19,7 +23,7 @@ func (s *Service) CreateSubject(ctx context.Context, req CreateSubjectRequest) (
 
 	saved, err := s.repo.Create(ctx, entity)
 	if err != nil {
-		return nil, err
+		return nil, errors.FromPostgresError(err)
 	}
 
 	return &Subject{
@@ -34,12 +38,12 @@ func (s *Service) CreateSubject(ctx context.Context, req CreateSubjectRequest) (
 func (s *Service) GetSubjects(ctx context.Context, q GetSubjectRequest) (*GetSubjectResponse, error) {
 	entities, err := s.repo.List(ctx, q)
 	if err != nil {
-		return nil, err
+		return nil, errors.FromPostgresError(err)
 	}
 
 	total, err := s.repo.Count(ctx, q)
 	if err != nil {
-		return nil, err
+		return nil, errors.FromPostgresError(err)
 	}
 
 	subjects := make([]SubjectListItem, 0, len(entities))

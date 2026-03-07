@@ -3,6 +3,7 @@ package institutes
 import (
 	"context"
 
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/errors"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/utlis"
 )
 
@@ -18,7 +19,7 @@ func (s *Service) CreateInstitution(ctx context.Context, req CreateInstitutionRe
 
 	hashedPassword, err := utlis.HashPassword(req.Password)
 	if err != nil {
-		return nil, err
+		return nil, errors.Internal("failed to hash password", err)
 	}
 
 	entity := &InstitutionEntity{
@@ -29,7 +30,7 @@ func (s *Service) CreateInstitution(ctx context.Context, req CreateInstitutionRe
 
 	saved, err := s.repo.Create(ctx, entity)
 	if err != nil {
-		return nil, err
+		return nil, errors.FromPostgresError(err)
 	}
 
 	return &Institute{
@@ -43,12 +44,12 @@ func (s *Service) CreateInstitution(ctx context.Context, req CreateInstitutionRe
 func (s *Service) GetInstitutions(ctx context.Context, q GetInstitutionRequest) (*GetInstitutionsResponse, error) {
 	entities, err := s.repo.List(ctx, q)
 	if err != nil {
-		return nil, err
+		return nil, errors.FromPostgresError(err)
 	}
 
 	total, err := s.repo.Count(ctx, q)
 	if err != nil {
-		return nil, err
+		return nil, errors.FromPostgresError(err)
 	}
 
 	institutions := make([]InstitutionListItem, 0, len(entities))

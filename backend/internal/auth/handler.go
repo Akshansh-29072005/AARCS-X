@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/institutes"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/errors"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/middleware"
 	"github.com/gin-gonic/gin"
 )
@@ -32,13 +33,13 @@ func (h *Handler) Login(c *gin.Context) {
 	var req LoginRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.Error(errors.BadRequest("invalid login request", err))
 		return
 	}
 
 	token, err := h.service.Login(c.Request.Context(), req)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		c.Error(errors.Unauthorized("invalid credentials", err))
 		return
 	}
 
@@ -60,7 +61,7 @@ func (h *Handler) RegisterInstitution(c *gin.Context) {
 	var req RegisterRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.Error(errors.BadRequest("invalid registration request", err))
 		return
 	}
 
@@ -75,7 +76,7 @@ func (h *Handler) RegisterInstitution(c *gin.Context) {
 			},
 		)
 		if err != nil {
-			return 0, err
+			return 0, errors.Internal("failed to create institution", err)
 		}
 		return inst.ID, nil
 	}
@@ -87,7 +88,7 @@ func (h *Handler) RegisterInstitution(c *gin.Context) {
 	)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.Error(errors.BadRequest("invalid registration request", err))
 		return
 	}
 

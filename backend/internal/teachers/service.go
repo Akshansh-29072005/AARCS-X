@@ -3,6 +3,7 @@ package teachers
 import (
 	"context"
 
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/errors"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/utlis"
 )
 
@@ -20,7 +21,7 @@ func (s *Service) CreateTeacher(ctx context.Context, req CreateTeacherRequest) (
 
 	hashedPassword, err := utlis.HashPassword(req.Password)
 	if err != nil {
-		return nil, err
+		return nil, errors.Internal("failed to hash password", err)
 	}
 
 	entity := &TeacherEntity{
@@ -34,13 +35,13 @@ func (s *Service) CreateTeacher(ctx context.Context, req CreateTeacherRequest) (
 
 	saved, err := s.repo.Create(ctx, entity)
 	if err != nil {
-		return nil, err
+		return nil, errors.FromPostgresError(err)
 	}
 
 	// Create user entry for authentication
 	err = s.repo.CreateUser(ctx, req.Email, hashedPassword, saved.ID)
 	if err != nil {
-		return nil, err
+		return nil, errors.FromPostgresError(err)
 	}
 
 	return &Teacher{
@@ -57,12 +58,12 @@ func (s *Service) CreateTeacher(ctx context.Context, req CreateTeacherRequest) (
 func (s *Service) GetTeachers(ctx context.Context, q GetTeachersRequest) (*GetTeachersResponse, error) {
 	entities, err := s.repo.List(ctx, q)
 	if err != nil {
-		return nil, err
+		return nil, errors.FromPostgresError(err)
 	}
 
 	total, err := s.repo.Count(ctx, q)
 	if err != nil {
-		return nil, err
+		return nil, errors.FromPostgresError(err)
 	}
 
 	teachers := make([]TeacherListItem, 0, len(entities))

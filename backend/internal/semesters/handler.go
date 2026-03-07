@@ -3,6 +3,7 @@ package semesters
 import (
 	"net/http"
 
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/errors"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/middleware"
 	"github.com/gin-gonic/gin"
 )
@@ -25,13 +26,13 @@ func (h *Handler) CreateSemester(c *gin.Context) {
 	var req CreateSemesterRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.Error(errors.BadRequest("invalid request body", err))
 		return
 	}
 
 	semester, err := h.service.CreateSemesters(c.Request.Context(), req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.Error(err)
 		return
 	}
 
@@ -52,13 +53,13 @@ func (h *Handler) Read(c *gin.Context) {
 	var req GetSemestersRequest
 
 	if err := c.ShouldBindQuery(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.Error(errors.BadRequest("invalid request query", err))
 		return
 	}
 
 	response, err := h.service.GetSemesters(c.Request.Context(), req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.Error(err)
 		return
 	}
 

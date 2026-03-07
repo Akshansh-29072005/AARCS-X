@@ -3,6 +3,7 @@ package teachers
 import (
 	"net/http"
 
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/errors"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/middleware"
 	"github.com/gin-gonic/gin"
 )
@@ -24,13 +25,14 @@ func (h *Handler) CreateTeacher(c *gin.Context) {
 
 	var req CreateTeacherRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.Error(errors.BadRequest("invalid request body", err))
 		return
 	}
 
 	teacher, err := h.service.CreateTeacher(c.Request.Context(), req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.Error(err)
+		return
 	}
 
 	c.JSON(http.StatusOK, teacher)
@@ -50,13 +52,13 @@ func (h *Handler) Read(c *gin.Context) {
 	var req GetTeachersRequest
 
 	if err := c.ShouldBindQuery(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.Error(errors.BadRequest("invalid query parameters", err))
 		return
 	}
 
 	response, err := h.service.GetTeachers(c.Request.Context(), req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.Error(err)
 		return
 	}
 

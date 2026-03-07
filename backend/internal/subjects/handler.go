@@ -3,6 +3,7 @@ package subjects
 import (
 	"net/http"
 
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/errors"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/middleware"
 	"github.com/gin-gonic/gin"
 )
@@ -26,13 +27,13 @@ func (h *Handler) CreateSubject(c *gin.Context) {
 	var req CreateSubjectRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.Error(errors.BadRequest("invallid request body", err))
 		return
 	}
 
 	subject, err := h.service.CreateSubject(c.Request.Context(), req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.Error(err)
 		return
 	}
 
@@ -52,13 +53,13 @@ func (h *Handler) Read(c *gin.Context) {
 		Msg("Received request to read subjects")
 
 	if err := c.ShouldBindQuery(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.Error(errors.BadRequest("invalid query parameters", err))
 		return
 	}
 
 	response, err := h.service.GetSubjects(c.Request.Context(), req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.Error(err)
 		return
 	}
 

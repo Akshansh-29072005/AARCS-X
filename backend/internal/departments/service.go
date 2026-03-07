@@ -1,6 +1,10 @@
 package departments
 
-import "context"
+import (
+	"context"
+
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/errors"
+)
 
 type Service struct {
 	repo *Repository
@@ -20,7 +24,7 @@ func (s *Service) CreateDepartment(ctx context.Context, req CreateDepartmentRequ
 
 	saved, err := s.repo.Create(ctx, entity)
 	if err != nil {
-		return nil, err
+		return nil, errors.FromPostgresError(err)
 	}
 
 	return &Department{
@@ -36,12 +40,12 @@ func (s *Service) CreateDepartment(ctx context.Context, req CreateDepartmentRequ
 func (s *Service) GetDepartments(ctx context.Context, q GetDepartmentRequest) (*GetDepartmentResponse, error) {
 	entities, err := s.repo.List(ctx, q)
 	if err != nil {
-		return nil, err
+		return nil, errors.FromPostgresError(err)
 	}
 
 	total, err := s.repo.Count(ctx, q)
 	if err != nil {
-		return nil, err
+		return nil, errors.FromPostgresError(err)
 	}
 
 	departments := make([]DepartmentListItem, 0, len(entities))

@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/errors"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/utlis"
 )
 
@@ -19,13 +20,13 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (string, error) {
 
 	user, err := s.repo.GetByEmail(ctx, req.Email)
 	if err != nil {
-		return "", err
+		return "", errors.FromPostgresError(err)
 	}
 
 	// Compare password (bcrypt)
 	err = utlis.ComparePasswords(user.Password, req.Password)
 	if err != nil {
-		return "", err
+		return "", errors.Internal("failed to compare password", err)
 	}
 
 	// Generate JWT
@@ -36,7 +37,7 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (string, error) {
 	)
 
 	if err != nil {
-		return "", err
+		return "", errors.Internal("failed to generate token", err)
 	}
 
 	return token, nil
@@ -52,13 +53,13 @@ func (s *Service) RegisterInstitution(
 	// Create institution
 	institutionID, err := createInstitution(ctx, req.InstitutionName, req.InstitutionCode, req.Password)
 	if err != nil {
-		return "", err
+		return "", errors.FromPostgresError(err)
 	}
 
 	// Hash password
 	hashed, err := utlis.HashPassword(req.Password)
 	if err != nil {
-		return "", err
+		return "", errors.Internal("failed to hash password", err)
 	}
 
 	// Create user
@@ -70,7 +71,7 @@ func (s *Service) RegisterInstitution(
 		&institutionID,
 	)
 	if err != nil {
-		return "", err
+		return "", errors.FromPostgresError(err)
 	}
 
 	// Issue JWT
