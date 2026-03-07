@@ -17,3 +17,7 @@ func Conflict(msg string, err error) *AppError {
 func Internal(msg string, err error) *AppError {
 	return New("INTERNAL_ERROR", msg, http.StatusInternalServerError, err)
 }
+
+func Unauthorized(msg string, err error) *AppError {
+	return New("UNAUTHORIZED", msg, http.StatusUnauthorized, err)
+}
