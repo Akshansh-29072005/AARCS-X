@@ -32,9 +32,10 @@ Each domain (students, teachers, institutes, auth) owns its API, business logic,
 - [x] DB connection pooling
 - [x] SQL migrations
 - [x] Environment-based config
-- [ ] JWT authentication
-- [ ] Request ID + structured logging
-- [ ] Metrics and tracing
+- [x] JWT authentication (register/login + protected middleware)
+- [x] Request ID + structured logging middleware
+- [x] System health and runtime metrics endpoints
+- [ ] Distributed tracing (OpenTelemetry)
 - [ ] Rate limiting
 - [ ] CI/CD pipeline
 
@@ -48,17 +49,18 @@ These are intentionally deferred to keep focus on correctness, observability, an
 
 Production Readiness — What’s Implemented vs What To Finalize
 - Implemented
-	- Health check route at [/](backend/internal/platform/server/routes.go#L9) with DB connectivity indication.
-	- Connection pooling and ping validation in [backend/internal/platform/database/postgres.go](backend/internal/platform/database/postgres.go).
-	- Environment-driven config in [backend/internal/config/config.go](backend/internal/config/config.go), supports `.env` via `godotenv`.
-	- Basic CORS in [backend/cmd/api/main.go](backend/cmd/api/main.go#L34-L47).
-	- Students and Teachers modules with create/list endpoints.
+	- ✅ Health + system metrics endpoints: `GET /api/v1/system/health`, `GET /api/v1/system/metrics` in [backend/internal/platform/server/routes.go](backend/internal/platform/server/routes.go).
+	- ✅ Connection pooling and startup DB validation in [backend/internal/platform/database/postgres.go](backend/internal/platform/database/postgres.go).
+	- ✅ Environment-driven config in [backend/internal/config/config.go](backend/internal/config/config.go) (`GIN_MODE`, `DATABASE_URL`, `PORT`, `JWT_SECRET`, `LOG_LEVEL`).
+	- ✅ Structured logging + request correlation via middleware stack in [backend/cmd/api/main.go](backend/cmd/api/main.go) and [backend/internal/platform/middleware](backend/internal/platform/middleware).
+	- ✅ Auth enabled: register/login/protected routes in [backend/internal/auth/routes.go](backend/internal/auth/routes.go), JWT utilities in [backend/internal/platform/utlis/jwt.go](backend/internal/platform/utlis/jwt.go).
+	- ✅ Role-gated domain routes (`institution`) across students, teachers, institutions, departments, semesters, and subjects.
 - To finalize for production
-	- Secure CORS: restrict `AllowOrigins` to your domains; remove `*`.
+	- 🚧 Secure CORS: restrict `AllowOrigins` to trusted domains; remove `*` for production.
 	- TLS: run behind a reverse proxy (Nginx/Traefik) with HTTPS and HSTS.
-	- Secrets: load `DATABASE_URL`, `JWT_SECRET`, and other secrets from a vault (AWS Secrets Manager/SOPS), not `.env`.
-	- AuthN/AuthZ: implement JWT/OAuth flows in [backend/internal/auth](backend/internal/auth) and enforce in middleware.
-	- Observability: structured logs (Zap/Logrus), metrics (Prometheus), tracing (OpenTelemetry), health/readiness endpoints.
+	- 🚧 Secrets: move `DATABASE_URL`, `JWT_SECRET`, and related secrets to a secrets manager (not `.env`).
+	- 🚧 AuthN/AuthZ hardening: add refresh tokens, token revocation, stronger role policies.
+	- 🚧 Observability: Prometheus metrics + OpenTelemetry tracing; current health metrics are implemented, but full telemetry is pending.
 	- Rate limiting & security headers: add middleware for DoS resistance and headers (CSP, X-Frame-Options, etc.).
 	- API versioning & docs: provide `/v1` routes and Swagger/OpenAPI spec.
 	- CI/CD: build, test, lint, containerize, run migrations, and deploy via GitHub Actions.
@@ -73,10 +75,13 @@ sudo -u postgres psql -c "CREATE DATABASE aarcs_db OWNER aarcs_user;"
 ```
 - Set environment variables (used by [backend/internal/config/config.go](backend/internal/config/config.go)):
 ```bash
+export GIN_MODE=debug
 export DATABASE_URL=postgres://aarcs_user:secret@localhost:5432/aarcs_db?sslmode=disable
 export PORT=8000
-# Recommended for prod:
-# export JWT_SECRET=supersecret
+export JWT_SECRET=supersecret
+export LOG_LEVEL=info
+# Recommended for prod hardening:
+# export GIN_MODE=release
 # export ALLOWED_ORIGINS=https://yourapp.com,https://admin.yourapp.com
 ```
 
@@ -95,12 +100,21 @@ go build ./cmd/api && ./api
 ```
 
 API Endpoints (current)
-- Health: `GET /` — returns status and DB connectivity ([backend/internal/platform/server/routes.go](backend/internal/platform/server/routes.go)).
-- Students:
-	- `POST /api/students` — create student ([backend/internal/students/routes.go](backend/internal/students/routes.go)).
-	- `GET  /api/students` — list students ([backend/internal/students/routes.go](backend/internal/students/routes.go)).
-- Teachers:
-	- `POST /api/teachers` — create teacher ([backend/internal/teachers/routes.go](backend/internal/teachers/routes.go)).
+- System
+	- `GET /api/v1/system/health`
+	- `GET /api/v1/system/metrics`
+- Auth (public)
+	- `POST /api/v1/auth/register`
+	- `POST /api/v1/auth/login`
+- Auth (protected)
+	- `GET /api/v1/auth/protected/me` (requires `Authorization: Bearer <token>`)
+- Domain routes (protected + role: `institution`)
+	- `POST/GET /api/v1/institutions`
+	- `POST/GET /api/v1/departments`
+	- `POST/GET /api/v1/semesters`
+	- `POST/GET /api/v1/subjects`
+	- `POST/GET /api/v1/students`
+	- `POST/GET /api/v1/teachers`
 
 Backend — Folder-by-Folder
 - [backend/cmd/api/main.go](backend/cmd/api/main.go): Entry point. Loads config, connects DB, configures CORS, registers routes, starts server.
@@ -108,13 +122,14 @@ Backend — Folder-by-Folder
 - [backend/internal/platform/database](backend/internal/platform/database): Postgres connection pool bootstrap. Advantages: encapsulates connection handling, ping checks for early failure, ready for pool tuning in prod.
 - [backend/internal/platform/http](backend/internal/platform/http): Standardized JSON responses and validation error formatter. Advantages: consistent API responses, easier client handling, centralized error formatting.
 - [backend/internal/platform/server](backend/internal/platform/server): Server-level routes (health, readiness) and future global wiring. Advantages: clear separation of infra routes vs domain routes.
-- [backend/internal/platform/middleware](backend/internal/platform/middleware): Placeholder for cross-cutting middleware (auth, rate limit, request ID, compression). Advantages: reusable policies, centralized security and observability.
-- [backend/internal/platform/logger](backend/internal/platform/logger): Placeholder for structured logging integrations (Zap/Logrus). Advantages: correlation IDs, leveled logging, JSON output for log aggregation.
+- [backend/internal/platform/middleware](backend/internal/platform/middleware): Active cross-cutting middleware (`AuthMiddleware`, `RequireRole`, `RequestID`, request logging, centralized error handling). Advantages: consistent security and observability at the edge.
+- [backend/internal/platform/logger](backend/internal/platform/logger): Zerolog-based logger bootstrap with environment/level awareness. Advantages: structured logs in production, readable logs in development.
+- [backend/internal/platform/errors](backend/internal/platform/errors): Shared typed application errors and DB-error mapping. Advantages: stable error contracts and cleaner handler/service boundaries.
 - [backend/internal/students](backend/internal/students): Domain module (DTO/entity/model/repository/service/handler/routes). Advantages: clean layering, testable components, easier evolution.
 - [backend/internal/teachers](backend/internal/teachers): Same structure as `students`. Advantages: consistency, isolated business logic.
-- [backend/internal/institutes](backend/internal/institutes): Scaffolding for institute domain. Advantages: future expansion without touching core infra.
+- [backend/internal/institutes](backend/internal/institutes): Implemented institute domain with create/read endpoints and service/repository layers.
 - [backend/internal/departments](backend/internal/departments): Same structure as `institutes` including (DTO/entity/model/repository/service/handler/routes).
-- [backend/internal/auth](backend/internal/auth): Scaffolding for authentication flows (JWT/OAuth). Advantages: clear boundary for security-critical code.
+- [backend/internal/auth](backend/internal/auth): Implemented auth module (institution registration, login, protected `me`). Advantages: centralized auth logic and JWT-based access control.
 - [backend/migrations](backend/migrations): SQL migration files (`up`/`down`). Advantages: deterministic schema changes, CI-safe database evolution.
 - [backend/tmp](backend/tmp): Scratch/build artifacts during dev. Advantages: keeps repo clean by isolating transient files.
 - [backend/.air.toml](backend/.air.toml): Air live-reload config for local dev. Advantages: faster iteration; disabled in prod.
@@ -177,8 +192,8 @@ CI/CD & Deployment
 - Zero-downtime deploys: readiness gates + migration strategy.
 
 Environment Variables
-- Backend (minimum): `DATABASE_URL`, `PORT`
-- Recommended: `JWT_SECRET`, `ALLOWED_ORIGINS`, `LOG_LEVEL`, `GIN_MODE`, `REDIS_URL`
+- Backend runtime fields (implemented in config): `GIN_MODE`, `DATABASE_URL`, `PORT`, `JWT_SECRET`, `LOG_LEVEL`
+- Backend recommended additions: `ALLOWED_ORIGINS`, `REDIS_URL`
 
 ⚠️ Security Note  
 `.env` files are for local development only. Production secrets must be injected via environment variables or a secrets manager.
@@ -250,7 +265,10 @@ Environment variables (backend)
 	- `PORT`
 
 Auth module status
-- Auth routes are scaffolded in [backend/internal/auth/routes.go](backend/internal/auth/routes.go) with placeholders for register/login/logout and protected `me` endpoints.
+- ✅ Implemented: register/login/protected `me` routes are active in [backend/internal/auth/routes.go](backend/internal/auth/routes.go).
+- ✅ Implemented: JWT validation middleware active in [backend/internal/platform/middleware/auth.go](backend/internal/platform/middleware/auth.go).
+- ✅ Implemented: role guard middleware available in [backend/internal/platform/middleware/role.go](backend/internal/platform/middleware/role.go).
+- 🚧 In progress: logout flow and token invalidation/refresh strategy.
 <!-- Next production steps recommended based on current progress
 - Enable the auth module and add JWT middleware; wire it into the `/api/v1` groups.
 - Add migrations for user credential hashing (bcrypt) and role-based access control.
