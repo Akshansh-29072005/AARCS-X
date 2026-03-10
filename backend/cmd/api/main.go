@@ -127,7 +127,7 @@ func main() {
 		studentRepository = students.NewRepository(pool)
 
 		// Student Service
-		studentService = students.NewService(studentRepository)
+		studentService = students.NewService(studentRepository, pool)
 
 		// Student Handler
 		studentHandler = students.NewHandler(studentService)
