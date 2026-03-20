@@ -17,6 +17,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 )
 
 func main() {
@@ -32,15 +33,25 @@ func main() {
 	// Initializing logger
 	appLogger := logger.NewLogger(cfg.GinMode, cfg.LogLevel)
 
-	// Connecting to database
+	// Connecting to PostgreSQL database
 	var pool *pgxpool.Pool
 	pool, err = database.Connect(cfg.DatabaseURL)
 
 	if err != nil {
-		appLogger.Fatal().Err(err).Msg("Failed to connect to database")
+		appLogger.Fatal().Err(err).Msg("Failed to connect to PostgreSQL database")
 	}
 
 	defer pool.Close()
+
+	// Connecting to Redis
+	var redisClient *redis.Client
+	redisClient, err = database.ConnectRedis(cfg.RedisURL)
+	
+	if err != nil {
+		appLogger.Fatal().Err(err).Msg("Failed to connect to Redis")
+	}
+
+	defer redisClient.Close()
 
 	// Starting server
 	appLogger.Info().Msg("Starting AARCS-X API server...")
