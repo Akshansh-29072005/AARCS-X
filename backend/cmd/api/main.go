@@ -90,7 +90,7 @@ func main() {
 
 	var (
 		// Institution Repository
-		institutionRepository = institutes.NewRepository(pool)
+		institutionRepository = institutes.NewRepository(pool, redisClient)
 
 		// Institution Service
 		institutionService = institutes.NewService(institutionRepository)
