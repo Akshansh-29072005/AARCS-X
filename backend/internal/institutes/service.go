@@ -66,3 +66,16 @@ func (s *Service) GetInstitutions(ctx context.Context, q GetInstitutionRequest) 
 		Total:        total,
 	}, nil
 }
+
+func (s *Service) GetInstitutionByID(ctx context.Context, id int) (*GetByIDInstituteRequest, error) {
+	institution, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, errors.FromPostgresError(err)
+	}
+
+	if institution == nil {
+		return nil, err
+	}
+	
+	return institution, nil
+}

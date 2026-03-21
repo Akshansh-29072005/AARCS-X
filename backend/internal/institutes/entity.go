@@ -9,3 +9,9 @@ type InstitutionEntity struct {
 	Password  string
 	CreatedAt time.Time
 }
+
+type GetByIDInstituteRequest struct {
+	ID   int
+	Name string
+	Code string
+}
