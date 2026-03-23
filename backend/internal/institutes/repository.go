@@ -89,8 +89,8 @@ func (r *Repository) Count(ctx context.Context, q GetInstitutionRequest) (int, e
 	return total, err
 }
 
-func (r *Repository) GetByID(ctx context.Context, id int) (*GetByIDInstituteRequest,bool, error) {
-	var institution GetByIDInstituteRequest
+func (r *Repository) GetByID(ctx context.Context, id int) (*GetByIDInstituteResponse,bool, error) {
+	var institution GetByIDInstituteResponse
 
 	// Check Redis cache first
 	cacheKey := fmt.Sprintf("institution:v1:%d", id)

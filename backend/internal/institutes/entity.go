@@ -10,7 +10,7 @@ type InstitutionEntity struct {
 	CreatedAt time.Time
 }
 
-type GetByIDInstituteRequest struct {
+type GetByIDInstituteResponse struct {
 	ID   int
 	Name string
 	Code string

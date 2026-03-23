@@ -68,7 +68,7 @@ func (s *Service) GetInstitutions(ctx context.Context, q GetInstitutionRequest) 
 	}, nil
 }
 
-func (s *Service) GetInstitutionByID(ctx context.Context, id int) (*GetByIDInstituteRequest, bool, error) {
+func (s *Service) GetInstitutionByID(ctx context.Context, id int) (*GetByIDInstituteResponse, bool, error) {
 	institution, cacheHit, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return nil, false, errors.FromPostgresError(err)
