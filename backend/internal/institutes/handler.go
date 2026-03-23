@@ -1,6 +1,7 @@
 package institutes
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -73,12 +74,14 @@ func (h *Handler) Read(c *gin.Context) {
 
 func (h *Handler) ReadByID(c *gin.Context) {
 
+	idStr := c.Param("id")
+
 	log := middleware.GetLogger(c)
 	log.Info().
 		Str("component", "institutes_handler").
+		Str("id", idStr).
 		Msg("Received request to read institute by ID")
 
-	idStr := c.Param("id")
 	if idStr == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "id parameter is required"})
 		return
@@ -90,15 +93,28 @@ func (h *Handler) ReadByID(c *gin.Context) {
 		return
 	}
 
-	response, err := h.service.GetInstitutionByID(c.Request.Context(), id)
+	response, cacheHit, err := h.service.GetInstitutionByID(c.Request.Context(), id)
 	if err != nil {
 		c.Error(err)
 		return
+	}
+
+	if cacheHit {
+		log.Info().
+			Str("cache_status", "hit").
+			Str("cache_key", fmt.Sprintf("institution:v1:%d", id)).
+			Msg("cache hit")
+	} else {
+		log.Info().
+			Str("cache_status", "miss").
+			Str("cache_key", fmt.Sprintf("institution:v1:%d", id)).
+			Msg("cache miss")
 	}
 
 	c.JSON(http.StatusOK, response)
 
 	log.Info().
 		Str("component", "institutes_handler").
+		Str("id", idStr).
 		Msg("Institute retrieved successfully")
 }

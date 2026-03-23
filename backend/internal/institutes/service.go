@@ -2,6 +2,7 @@ package institutes
 
 import (
 	"context"
+	
 
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/errors"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/utlis"
@@ -67,15 +68,15 @@ func (s *Service) GetInstitutions(ctx context.Context, q GetInstitutionRequest) 
 	}, nil
 }
 
-func (s *Service) GetInstitutionByID(ctx context.Context, id int) (*GetByIDInstituteRequest, error) {
-	institution, err := s.repo.GetByID(ctx, id)
+func (s *Service) GetInstitutionByID(ctx context.Context, id int) (*GetByIDInstituteRequest, bool, error) {
+	institution, cacheHit, err := s.repo.GetByID(ctx, id)
 	if err != nil {
-		return nil, errors.FromPostgresError(err)
+		return nil, false, errors.FromPostgresError(err)
 	}
 
 	if institution == nil {
-		return nil, err
+		return nil, false, errors.NotFound("institution not found", nil)
 	}
 	
-	return institution, nil
+	return institution, cacheHit, nil
 }

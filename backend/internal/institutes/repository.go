@@ -3,12 +3,16 @@ package institutes
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 )
+
+const institutionChacheTTL = 10 * time.Minute
 
 type Repository struct {
 	db *pgxpool.Pool
@@ -85,30 +89,43 @@ func (r *Repository) Count(ctx context.Context, q GetInstitutionRequest) (int, e
 	return total, err
 }
 
-func (r *Repository) GetByID(ctx context.Context, id int) (*GetByIDInstituteRequest, error) {
+func (r *Repository) GetByID(ctx context.Context, id int) (*GetByIDInstituteRequest,bool, error) {
 	var institution GetByIDInstituteRequest
 
 	// Check Redis cache first
-	cacheKey := fmt.Sprintf("institution:%d", id)
+	cacheKey := fmt.Sprintf("institution:v1:%d", id)
 	cachedData, err := r.rdb.Get(ctx, cacheKey).Bytes()
 	if err == nil {
 		// Cache hit, unmarshal cachedData into institution
-		json.Unmarshal(cachedData, &institution)
-		return &institution, nil
+		if err := json.Unmarshal(cachedData, &institution); err != nil {
+			return nil, false, err
+		}
 
+		return &institution, true, nil
+
+	} else if err != redis.Nil {
+		// Redis error 
+		
 	}
-	// Cache miss, query the database
+
+	// Cache miss, query PostgreSQL
 	err = r.db.QueryRow(ctx,
 		`SELECT id, name, code FROM institutions WHERE id = $1`, id,
-	).Scan(&institution.ID, &institution.Name, &institution.Code)
-
-	if err != nil {
-		return nil, err
+	).Scan(
+		&institution.ID,
+		&institution.Name,
+		&institution.Code,
+	)
+	
+	if errors.Is(err, pgx.ErrNoRows){
+		return nil, false, err
 	}
+	
+	// Store result in Redis cache for future requests
+	cachedData, err = json.Marshal(institution)
+	if err == nil {
+		_ = r.rdb.Set(ctx, cacheKey, cachedData, institutionChacheTTL).Err()
+	}
+	return &institution, false, nil
 
-	// Store the result in Redis cache for future requests
-	data,_ := json.Marshal(institution)
-	r.rdb.Set(ctx, cacheKey, data, time.Minute*5) // Cache for 5 minutes
-
-	return &institution, nil
 }
