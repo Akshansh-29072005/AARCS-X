@@ -10,3 +10,11 @@ type DepartmentEntity struct {
 	InstitutionId    int
 	CreatedAt        time.Time
 }
+
+type GetByIDDepartmentResponse struct {
+	ID               int    `json:"id"`
+	Name             string `json:"name"`
+	Code             string `json:"code"`
+	HeadOfDepartment string `json:"head_of_department"`
+	InstitutionId    int    `json:"institution_id"`
+}

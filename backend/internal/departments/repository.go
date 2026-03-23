@@ -2,16 +2,28 @@ package departments
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 )
+
+const departmentChacheTTL = time.Minute * 10
 
 type Repository struct {
 	db *pgxpool.Pool
+	rdb *redis.Client
 }
 
-func NewRepository(db *pgxpool.Pool) *Repository {
-	return &Repository{db: db}
+func NewRepository(db *pgxpool.Pool, rdb *redis.Client) *Repository {
+	return &Repository{
+		db: db,
+		rdb: rdb,
+	}
 }
 
 func (r *Repository) Create(ctx context.Context, e *DepartmentEntity) (*DepartmentEntity, error) {
@@ -82,4 +94,45 @@ func (r *Repository) Count(ctx context.Context, q GetDepartmentRequest) (int, er
 		q.Name, q.Code, q.HeadOfDepartment, q.InstitutionId,
 	).Scan(&total)
 	return total, err
+}
+
+func (r *Repository) GetByID(ctx context.Context, id int) (*GetByIDDepartmentResponse, bool, error) {
+	var department GetByIDDepartmentResponse
+
+	// Check Redis cache first
+	cacheKey := fmt.Sprintf("department:v1:%d", id)
+	cachedData, err := r.rdb.Get(ctx, cacheKey).Bytes()
+	if err == nil {
+		// Cache hit, unmarshal cachedData into institution
+		if err := json.Unmarshal(cachedData, &department); err != nil {
+			return nil, false, err
+		}
+
+		return &department, true, nil
+
+	} else if err != redis.Nil {
+		// Redis error 
+		
+	}
+
+	// Cache miss, query PostgreSQL
+	err = r.db.QueryRow(ctx,
+		`SELECT id, name, code FROM departments WHERE id = $1`, id,
+	).Scan(
+		&department.ID,
+		&department.Name,
+		&department.Code,
+	)
+	
+	if errors.Is(err, pgx.ErrNoRows){
+		return nil, false, err
+	}
+	
+	// Store result in Redis cache for future requests
+	cachedData, err = json.Marshal(department)
+	if err == nil {
+		_ = r.rdb.Set(ctx, cacheKey, cachedData, departmentChacheTTL).Err()
+	}
+	return &department, false, nil
+
 }

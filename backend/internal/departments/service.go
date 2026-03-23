@@ -64,3 +64,16 @@ func (s *Service) GetDepartments(ctx context.Context, q GetDepartmentRequest) (*
 		Total:       total,
 	}, nil
 }
+
+func (s *Service) GetDepartmentByID(ctx context.Context, id int) (*GetByIDDepartmentResponse, bool, error) {
+	department, cacheHit, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, false, errors.FromPostgresError(err)
+	}
+
+	if department == nil {
+		return nil, false, errors.NotFound("department not found", nil)
+	}
+	
+	return department, cacheHit, nil
+}
