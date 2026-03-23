@@ -14,6 +14,8 @@ type Config struct {
 	Port         string
 	JWTSecret    string
 	LogLevel     string
+	RateLimit    string
+	RateWindow   string
 }
 
 func Load()(*Config, error) {
@@ -29,6 +31,8 @@ func Load()(*Config, error) {
 		Port:        os.Getenv("PORT"),
 		JWTSecret:   os.Getenv("JWT_SECRET"),
 		LogLevel:    os.Getenv("LOG_LEVEL"),
+		RateLimit:   os.Getenv("RateLimit"),
+		RateWindow:  os.Getenv("RateWindow"),
 	}
 
 	return config, nil
