@@ -117,7 +117,7 @@ func main() {
 		semestersHandler = semesters.NewHandler(semestersService)
 
 		// Subject Repository
-		subjectRepository = subjects.NewRepository(pool)
+		subjectRepository = subjects.NewRepository(pool, redisClient)
 
 		// Subject Service
 		subjectsService = subjects.NewService(subjectRepository)
