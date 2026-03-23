@@ -14,3 +14,12 @@ type TeacherEntity struct {
 	Designation  string
 	CreatedAt    time.Time
 }
+
+type GetByIDTeacherResponse struct {
+	ID           int       `json:"id"`
+	Name         string    `json:"name"`
+	Email        string    `json:"email"`
+	Phone        string    `json:"phone"`
+	DepartmentId int       `json:"department_id"`
+	Designation  string    `json:"designation"`
+}

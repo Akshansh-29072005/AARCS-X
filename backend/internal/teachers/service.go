@@ -82,3 +82,16 @@ func (s *Service) GetTeachers(ctx context.Context, q GetTeachersRequest) (*GetTe
 		Total:    total,
 	}, nil
 }
+
+func (s *Service) GetTeacherByID(ctx context.Context, id int) (*GetByIDTeacherResponse, bool, error) {
+	teacher, cacheHit, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, false, errors.FromPostgresError(err)
+	}
+
+	if teacher == nil {
+		return nil, false, errors.NotFound("teacher not found", nil)
+	}
+
+	return teacher, cacheHit, nil
+}
