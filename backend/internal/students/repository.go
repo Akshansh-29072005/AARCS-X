@@ -2,16 +2,28 @@ package students
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/database"
+	"github.com/redis/go-redis/v9"
 )
+
+const studentChacheTTL = time.Minute * 10
 
 type Repository struct {
 	db database.DBTX
+	rdb *redis.Client
 }
 
-func NewRepository(db database.DBTX) *Repository {
-	return &Repository{db: db}
+func NewRepository(db database.DBTX, rdb *redis.Client) *Repository {
+	return &Repository{
+		db: db,
+		rdb: rdb,
+	}
 }
 
 func (r *Repository) Create(ctx context.Context, e *StudentEntity) (*StudentEntity, error) {
@@ -93,4 +105,49 @@ func (r *Repository) Count(ctx context.Context, q GetStudentsRequest) (int, erro
 		q.SemesterId, q.DepartmentId, q.InstitutionId,
 	).Scan(&total)
 	return total, err
+}
+
+func (r *Repository) GetByID(ctx context.Context, id int) (*GetByIDStudentResponse, bool, error) {
+	var student GetByIDStudentResponse
+
+	// Check Redis cache first
+	cacheKey := fmt.Sprintf("student:v1:%d", id)
+	cachedData, err := r.rdb.Get(ctx, cacheKey).Bytes()
+	if err == nil {
+		// Cache hit, unmarshal cachedData into student
+		if err := json.Unmarshal(cachedData, &student); err != nil {
+			return nil, false, err
+		}
+
+		return &student, true, nil
+
+	} else if err != redis.Nil {
+		// Redis error 
+		
+	}
+
+	// Cache miss, query PostgreSQL
+	err = r.db.QueryRow(ctx,
+		`SELECT id, name, email, phone, semester_id, department_id, institution_id FROM students WHERE id = $1`, id,
+	).Scan(
+		&student.ID,
+		&student.Name,
+		&student.Email,
+		&student.Phone,
+		&student.SemesterId,
+		&student.DepartmentId,
+		&student.InstitutionId,
+	)
+	
+	if errors.Is(err, pgx.ErrNoRows){
+		return nil, false, err
+	}
+	
+	// Store result in Redis cache for future requests
+	cachedData, err = json.Marshal(student)
+	if err == nil {
+		_ = r.rdb.Set(ctx, cacheKey, cachedData, studentChacheTTL).Err()
+	}
+	return &student, false, nil
+
 }

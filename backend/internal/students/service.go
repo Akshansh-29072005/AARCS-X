@@ -7,6 +7,7 @@ import (
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/errors"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/utlis"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 )
 
 type Service struct {
@@ -25,8 +26,8 @@ func (s *Service) CreateStudent(ctx context.Context, req CreateStudentRequest) (
 
 	var student *Student
 
-	err := database.WithTransaction(ctx, s.pool, func(tx database.DBTX) error{
-		repo := NewRepository(tx)
+	err := database.WithTransaction(ctx, s.pool, func(tx database.DBTX, rdb *redis.Client) error{
+		repo := NewRepository(tx, rdb)
 
 		hashedPassword, err := utlis.HashPassword(req.Password)
 		if  err != nil {
@@ -101,4 +102,17 @@ func (s *Service) GetStudents(ctx context.Context, q GetStudentsRequest) (*GetSt
 		Students: students,
 		Total:    total,
 	}, nil
+}
+
+func (s *Service) GetStudentByID(ctx context.Context, id int) (*GetByIDStudentResponse, bool, error) {
+	student, cacheHit, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, false, errors.FromPostgresError(err)
+	}
+
+	if student == nil {
+		return nil, false, errors.NotFound("student not found", nil)
+	}
+
+	return student, cacheHit, nil
 }

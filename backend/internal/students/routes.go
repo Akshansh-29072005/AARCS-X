@@ -16,4 +16,7 @@ func RegisterRoutes(r *gin.Engine, h *Handler) {
 
 	// Student Info Getting Route
 	group.GET("/students", h.Read)
+
+	// Student Info Getting by ID Route
+	group.GET("/students/:id", h.ReadByID)
 }
