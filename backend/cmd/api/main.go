@@ -126,7 +126,7 @@ func main() {
 		subjectHandler = subjects.NewHandler(subjectsService)
 
 		// Teacher Repository
-		teacherRepository = teachers.NewRepository(pool)
+		teacherRepository = teachers.NewRepository(pool, redisClient)
 
 		// Teacher Service
 		teacherService = teachers.NewService(teacherRepository)
@@ -135,7 +135,7 @@ func main() {
 		teacherHandler = teachers.NewHandler(teacherService)
 
 		// Student Repository
-		studentRepository = students.NewRepository(pool)
+		studentRepository = students.NewRepository(pool, redisClient)
 
 		// Student Service
 		studentService = students.NewService(studentRepository, pool)
