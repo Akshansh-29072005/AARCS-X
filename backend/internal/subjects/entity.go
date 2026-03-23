@@ -9,3 +9,10 @@ type SubjectEntity struct {
 	SemesterId int
 	CreatedAt  time.Time
 }
+
+type GetByIDSubjectResponse struct {
+	ID         int       `json:"id"`
+	Name       string    `json:"name"`
+	Code       string    `json:"code"`
+	SemesterId int       `json:"semester_id"`
+}

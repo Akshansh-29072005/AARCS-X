@@ -61,3 +61,16 @@ func (s *Service) GetSubjects(ctx context.Context, q GetSubjectRequest) (*GetSub
 		Total:    total,
 	}, nil
 }
+
+func (s *Service) GetSubjectByID(ctx context.Context, id int) (*GetByIDSubjectResponse, bool, error) {
+	subject, cacheHit, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, false, errors.FromPostgresError(err)
+	}
+
+	if subject == nil {
+		return nil, false, errors.NotFound("subject not found", nil)
+	}
+
+	return subject, cacheHit, nil
+}
