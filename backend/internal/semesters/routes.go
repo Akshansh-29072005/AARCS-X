@@ -11,9 +11,12 @@ func RegisterRoutes(r *gin.Engine, h *Handler) {
 	group.Use(middleware.AuthMiddleware())
 	group.Use(middleware.RequireRole("institution"))
 
-	// Student Creating Route
+	// Semesters Creating Route
 	group.POST("/semesters", h.CreateSemester)
 
-	// Student Info Getting Route
+	// Semesters Info Getting Route
 	group.GET("/semesters", h.Read)
+
+	// Semesters Info Getting Route by ID
+	group.GET("/semesters/:id", h.ReadByID)
 }

@@ -58,3 +58,16 @@ func (s *Service) GetSemesters(ctx context.Context, q GetSemestersRequest) (*Get
 		Total:     total,
 	}, nil
 }
+
+func (s *Service) GetSemesterByID(ctx context.Context, id int) (*GetByIDSemesterResponse, bool, error) {
+	semester, cacheHit, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, false, errors.FromPostgresError(err)
+	}
+
+	if semester == nil {
+		return nil, false, errors.NotFound("semester not found", nil)
+	}
+
+	return semester, cacheHit, nil
+}

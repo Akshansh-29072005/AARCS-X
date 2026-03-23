@@ -8,3 +8,9 @@ type SemesterEntity struct {
 	DepartmentId int
 	CreatedAt    time.Time
 }
+
+type GetByIDSemesterResponse struct {
+	ID           int       `json:"id"`
+	Number       int       `json:"number"`
+	DepartmentId int       `json:"department_id"`
+}
