@@ -1,6 +1,9 @@
 package main
 
 import (
+	"strconv"
+	"time"
+
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/auth"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/config"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/departments"
@@ -30,6 +33,9 @@ func main() {
 		panic("failed to load configuration: " + err.Error())
 	}
 
+	limit, _ := strconv.ParseInt(cfg.RateLimit, 10, 64)
+	window, _ := time.ParseDuration(cfg.RateWindow)
+
 	// Initializing logger
 	appLogger := logger.NewLogger(cfg.GinMode, cfg.LogLevel)
 
@@ -53,6 +59,8 @@ func main() {
 
 	defer redisClient.Close()
 
+	rateLimiter := middleware.NewRateLimiter(redisClient, limit, window)
+
 	// Starting server
 	appLogger.Info().Msg("Starting AARCS-X API server...")
 
@@ -61,6 +69,7 @@ func main() {
 	router.Use(gin.Recovery())
 	router.Use(middleware.RequestID())
 	router.Use(middleware.LoggerMiddleware(appLogger))
+	router.Use(rateLimiter.RateLimitMiddleware())
 	router.Use(middleware.RequestLogger())
 	router.Use(middleware.ErrorMiddleware())
 
