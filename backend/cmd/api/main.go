@@ -99,7 +99,7 @@ func main() {
 		institutionHandler = institutes.NewHandler(institutionService)
 
 		// Department Repository
-		departmentRepository = departments.NewRepository(pool)
+		departmentRepository = departments.NewRepository(pool, redisClient)
 
 		// Department Service
 		departmentService = departments.NewService(departmentRepository)
