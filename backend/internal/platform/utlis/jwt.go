@@ -14,18 +14,14 @@ func SetJWTSecret(secret string) {
 
 type Claims struct {
 	UserID int    `json:"sub"`
-	Role   string `json:"role"`
-	RefID  *int   `json:"ref,omitempty"`
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(userID int, role string, refID *int) (string, error) {
+func GenerateToken(userID int) (string, error) {
 	claims := Claims{
 		UserID: userID,
-		Role:   role,
-		RefID:  refID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(15 * time.Minute)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}

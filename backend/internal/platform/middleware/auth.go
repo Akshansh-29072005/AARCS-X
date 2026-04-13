@@ -42,8 +42,6 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		// Store identity in context
 		c.Set("user_id", claims.UserID)
-		c.Set("role", claims.Role)
-		c.Set("ref_id", claims.RefID)
 
 		// Continue request
 		c.Next()

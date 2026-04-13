@@ -12,7 +12,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-const teacherChacheTTL = time.Minute * 10
+const teacherCacheTTL = time.Minute * 10
 
 type Repository struct {
 	db *pgxpool.Pool
@@ -136,7 +136,7 @@ func (r *Repository) GetByID (ctx context.Context, id int) (*GetByIDTeacherRespo
 	// Store result in Redis cache for future requests
 	cachedData, err = json.Marshal(teacher)
 	if err == nil {
-		_ = r.rdb.Set(ctx, cacheKey, cachedData, teacherChacheTTL).Err()
+		_ = r.rdb.Set(ctx, cacheKey, cachedData, teacherCacheTTL).Err()
 	}
 	return &teacher, false, nil
 }
