@@ -37,7 +37,7 @@ func (h *Handler) CreateTeacher(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, teacher)
+	c.JSON(http.StatusCreated, teacher)
 
 	log.Info().
 		Str("component", "teachers_handler").

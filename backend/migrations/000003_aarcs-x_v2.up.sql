@@ -1,3 +1,7 @@
+-- Transition cleanup from v1 schema.
+DROP TABLE IF EXISTS teachers CASCADE;
+DROP TABLE IF EXISTS students CASCADE;
+
 -- Role enums scoped to academic context.
 CREATE TYPE faculty_role AS ENUM ('faculty', 'hod');
 CREATE TYPE student_role AS ENUM ('student', 'cr');
