@@ -17,6 +17,7 @@ import (
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/students"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/subjects"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/teachers"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/users"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -97,7 +98,21 @@ func main() {
 	// Setting JWT Secret
 	utlis.SetJWTSecret(cfg.JWTSecret)
 
+	/* Initializing repositories, services, and handlers for each module */
+
 	var (
+		// User Repository
+		userRepository = users.NewRepository(pool, redisClient)
+
+		// User Service
+		userService = users.NewService(userRepository)
+
+		// Auth Service
+		authService = auth.NewService(userService)
+
+		// Auth Handler
+		authHandler = auth.NewHandler(authService)
+
 		// Institution Repository
 		institutionRepository = institutes.NewRepository(pool, redisClient)
 
@@ -151,16 +166,9 @@ func main() {
 
 		// Student Handler
 		studentHandler = students.NewHandler(studentService)
-
-		// Auth Repository
-		authRepository = auth.NewRepository(pool)
-
-		// Auth Service
-		authService = auth.NewService(authRepository)
-
-		// Auth Handler
-		authHandler = auth.NewHandler(authService, institutionService)
 	)
+
+	/* Registering routes for each module */
 
 	// Auth Routes
 	auth.RegisteredRoutes(router, authHandler)

@@ -10,7 +10,7 @@ func RegisteredRoutes(r *gin.Engine, h *Handler) {
 	api := r.Group("/api/v1/auth")
 
 	// User Registering Route
-	api.POST("/register", h.RegisterInstitution)
+	api.POST("/register", h.RegisterUser)
 
 	// User Logging In Route
 	api.POST("/login", h.Login)

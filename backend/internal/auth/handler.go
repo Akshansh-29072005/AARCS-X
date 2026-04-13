@@ -1,94 +1,41 @@
 package auth
 
 import (
-	"context"
 	"net/http"
 
-	"github.com/Akshansh-29072005/AARCS-X/backend/internal/institutes"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/errors"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/middleware"
 	"github.com/gin-gonic/gin"
 )
 
 type Handler struct {
-	service            *Service
-	institutionService *institutes.Service
+	service         *Service
 }
 
-func NewHandler(service *Service, institutionService *institutes.Service) *Handler {
+func NewHandler(service *Service) *Handler {
 	return &Handler{
-		service:            service,
-		institutionService: institutionService,
+		service: service,
 	}
 }
 
-// Login Handler
-func (h *Handler) Login(c *gin.Context) {
+// RegisterUser Handler
+func (h *Handler) RegisterUser(c *gin.Context) {
 
 	log := middleware.GetLogger(c)
 	log.Info().
 		Str("component", "auth_handler").
-		Msg("Received login request")
+		Msg("Received request to register user")
 
-	var req LoginRequest
-
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(errors.BadRequest("invalid login request", err))
-		return
-	}
-
-	token, err := h.service.Login(c.Request.Context(), req)
-	if err != nil {
-		c.Error(errors.Unauthorized("invalid credentials", err))
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"token": token})
-
-	log.Info().
-		Str("component", "auth_handler").
-		Msg("Login successful")
-}
-
-// RegisterInstitution Handler
-func (h *Handler) RegisterInstitution(c *gin.Context) {
-
-	log := middleware.GetLogger(c)
-	log.Info().
-		Str("component", "auth_handler").
-		Msg("Received institution registration request")
-	
-	var req RegisterRequest
+	var req CreateUserRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.Error(errors.BadRequest("invalid registration request", err))
+		c.Error(errors.BadRequest("invalid request body", err))
 		return
 	}
 
-	// 🔹 Adapter function
-	createInstitution := func(ctx context.Context, name, code, password string) (int, error) {
-		inst, err := h.institutionService.CreateInstitution(
-			ctx,
-			institutes.CreateInstitutionRequest{
-				Name:     name,
-				Code:     code,
-				Password: password,
-			},
-		)
-		if err != nil {
-			return 0, errors.Internal("failed to create institution", err)
-		}
-		return inst.ID, nil
-	}
-
-	token, err := h.service.RegisterInstitution(
-		c.Request.Context(),
-		req,
-		createInstitution,
-	)
-
+	token, err := h.service.RegisterUser(c.Request.Context(), req)
 	if err != nil {
-		c.Error(errors.BadRequest("invalid registration request", err))
+		c.Error(err)
 		return
 	}
 
@@ -96,10 +43,37 @@ func (h *Handler) RegisterInstitution(c *gin.Context) {
 
 	log.Info().
 		Str("component", "auth_handler").
-		Msg("Institution registered successfully")
+		Msg("User registered successfully")
 }
 
-// Me route handler
+func (h *Handler) Login(c *gin.Context) {
+
+	log := middleware.GetLogger(c)
+	log.Info().
+		Str("component", "auth_handler").
+		Msg("Received request to login user")
+
+	var req LoginRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.Error(errors.BadRequest("invalid request body", err))
+		return
+	}
+
+	token, err := h.service.Login(c.Request.Context(), req)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"token": token})
+
+	log.Info().
+		Str("component", "auth_handler").
+		Msg("User logged in successfully")
+}
+
+// Me Handler - returns user info based on token
 func (h *Handler) Me(c *gin.Context) {
 
 	log := middleware.GetLogger(c)
@@ -109,8 +83,6 @@ func (h *Handler) Me(c *gin.Context) {
 	
 	c.JSON(http.StatusOK, gin.H{
 		"user_id": c.GetInt("user_id"),
-		"role":    c.GetString("role"),
-		"ref_id":  c.MustGet("ref_id"),
 	})
 
 	log.Info().

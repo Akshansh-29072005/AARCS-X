@@ -5,37 +5,33 @@ import (
 
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/errors"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/utlis"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/users"
 )
 
 type Service struct {
-	repo *Repository
+	userService *users.Service
 }
 
-func NewService(repo *Repository) *Service {
-	return &Service{repo: repo}
+func NewService(userService *users.Service) *Service {
+	return &Service{
+		userService: userService,
+	}
 }
 
-// Login service
-func (s *Service) Login(ctx context.Context, req LoginRequest) (string, error) {
+// RegisterUser service (user onboarding)
+func (s *Service) RegisterUser(ctx context.Context, req CreateUserRequest) (string, error) {
 
-	user, err := s.repo.GetByEmail(ctx, req.Email)
+	userId, err := s.userService.CreateUser(ctx, users.CreateUserRequest{
+		Name:        req.Name,
+		Email:       req.Email,
+		PhoneNumber: req.PhoneNumber,
+		Password:    req.Password,
+	})
 	if err != nil {
-		return "", errors.FromPostgresError(err)
+		return "", err
 	}
 
-	// Compare password (bcrypt)
-	err = utlis.ComparePasswords(user.Password, req.Password)
-	if err != nil {
-		return "", errors.Internal("failed to compare password", err)
-	}
-
-	// Generate JWT
-	token, err := utlis.GenerateToken(
-		user.ID,
-		user.Role,
-		user.ReferenceID,
-	)
-
+	token, err := utlis.GenerateToken(userId)
 	if err != nil {
 		return "", errors.Internal("failed to generate token", err)
 	}
@@ -43,41 +39,17 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (string, error) {
 	return token, nil
 }
 
-// RegisterInstitution service (institution admin onboarding)
-func (s *Service) RegisterInstitution(
-	ctx context.Context,
-	req RegisterRequest,
-	createInstitution func(ctx context.Context, name, code, password string) (int, error),
-) (string, error) {
+func (s *Service) Login(ctx context.Context, req LoginRequest) (string, error) {
 
-	// Create institution
-	institutionID, err := createInstitution(ctx, req.InstitutionName, req.InstitutionCode, req.Password)
+	user, err := s.userService.GetUserByEmail(ctx, req.Email, req.Password)
 	if err != nil {
-		return "", errors.FromPostgresError(err)
+		return "", err
 	}
 
-	// Hash password
-	hashed, err := utlis.HashPassword(req.Password)
+	token, err := utlis.GenerateToken(user.ID)
 	if err != nil {
-		return "", errors.Internal("failed to hash password", err)
+		return "", errors.Internal("failed to generate token", err)
 	}
 
-	// Create user
-	userID, err := s.repo.CreateUser(
-		ctx,
-		req.Email,
-		hashed,
-		"institution",
-		&institutionID,
-	)
-	if err != nil {
-		return "", errors.FromPostgresError(err)
-	}
-
-	// Issue JWT
-	return utlis.GenerateToken(
-		userID,
-		"institution",
-		&institutionID,
-	)
+	return token, nil
 }

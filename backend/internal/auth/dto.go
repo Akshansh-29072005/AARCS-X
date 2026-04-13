@@ -1,12 +1,11 @@
 package auth
 
-type UserResponse struct {
-	Id    int    `json:"id" binding:"required"`
-	Role  string `json:"role" binding:"required"`
-	Email string `json:"email" binding:"required"`
+type CreateUserRequest struct {
+	Name     	string `json:"name" binding:"required"`
+	Email    	string `json:"email" binding:"required,email"`
+	PhoneNumber string `json:"phone_number" binding:"required,e164"`
+	Password 	string `json:"password" binding:"required,min=8"`
 }
-
-// Login Info
 
 type LoginRequest struct {
 	Email    string `json:"email" binding:"required,email"`
@@ -15,7 +14,6 @@ type LoginRequest struct {
 
 type LoginResponse struct {
 	Token string       `json:"token" binding:"required"`
-	User  UserResponse `json:"user" binding:"required"`
 }
 
 type AuthenticatedUser struct {
@@ -23,12 +21,4 @@ type AuthenticatedUser struct {
 	Role     string
 	Email    string
 	Password string
-}
-
-type RegisterRequest struct {
-	Email           string `json:"email" binding:"required,email"`
-	Password        string `json:"password" binding:"required"`
-	InstitutionName string `json:"institution" binding:"required"`
-	InstitutionCode string `json:"institution_code" binding:"required"`
-	ReferenceId     int    `json:"reference_id,omitempty"`
 }
