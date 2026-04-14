@@ -32,7 +32,7 @@ func (h *Handler) CreateInstitute(c *gin.Context) {
 		return
 	}
 
-	institute, err := h.service.CreateInstitution(c.Request.Context(), req)
+	institute, err := h.service.CreateInstitute(c.Request.Context(), req, c.GetInt("user_id"))
 	if err != nil {
 		c.Error(err)
 		return

@@ -9,10 +9,11 @@ func RegisterRoutes(r *gin.Engine, h *Handler) {
 
 	group := r.Group("/api/v1")
 	group.Use(middleware.AuthMiddleware())
-	group.Use(middleware.RequireRole("institution"))
 
 	// Institution Creating Route
 	group.POST("/institutions", h.CreateInstitute)
+
+	group.Use(middleware.RequireRole("institution"))
 
 	// Institution Info Getting Route
 	group.GET("/institutions", h.Read)

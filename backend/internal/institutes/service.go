@@ -5,7 +5,6 @@ import (
 	
 
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/errors"
-	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/utlis"
 )
 
 type Service struct {
@@ -16,29 +15,33 @@ func NewService(repo *Repository) *Service {
 	return &Service{repo: repo}
 }
 
-func (s *Service) CreateInstitution(ctx context.Context, req CreateInstitutionRequest) (*Institute, error) {
-
-	hashedPassword, err := utlis.HashPassword(req.Password)
-	if err != nil {
-		return nil, errors.Internal("failed to hash password", err)
-	}
+func (s *Service) CreateInstitute(ctx context.Context, req CreateInstitutionRequest, userID int) (*Institute, error) {
 
 	entity := &InstitutionEntity{
-		Name:     req.Name,
-		Code:     req.Code,
-		Password: hashedPassword,
+		Name:     	   req.Name,
+		Code:          req.Code,
+		OfficialEmail: req.Official_Email,
+		Address:   	   req.Address,
+		District:  	   req.District,
+		State:     	   req.State,
+		Country:  	   req.Country,
 	}
 
-	saved, err := s.repo.Create(ctx, entity)
+	saved, err := s.repo.Create(ctx, entity, userID)
 	if err != nil {
 		return nil, errors.FromPostgresError(err)
 	}
 
 	return &Institute{
-		ID:        saved.ID,
-		Name:      saved.Name,
-		Code:      saved.Code,
-		CreatedAt: saved.CreatedAt,
+		ID:            saved.ID,
+		Name:          saved.Name,
+		Code:          saved.Code,
+		OfficialEmail: saved.OfficialEmail,
+		Address:       saved.Address,
+		District:      saved.District,
+		State:         saved.State,
+		Country:       saved.Country,
+		CreatedAt:     saved.CreatedAt,
 	}, nil
 }
 

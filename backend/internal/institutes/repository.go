@@ -26,17 +26,27 @@ func NewRepository(db *pgxpool.Pool, rdb *redis.Client) *Repository {
 	}
 }
 
-func (r *Repository) Create(ctx context.Context, e *InstitutionEntity) (*InstitutionEntity, error) {
+func (r *Repository) Create(ctx context.Context, e *InstitutionEntity, userID int) (*InstitutionEntity, error) {
 	query := `
-		INSERT INTO institutions (name, code, password, created_at)
-		VALUES ($1,$2,$3,NOW())
+	WITH inserted_instituion AS (
+		INSERT INTO institutions (name, code, official_email, address, district, state, country, created_at)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,NOW())
 		RETURNING id, created_at
+	)
+	INSERT INTO institution_owners (institution_id, user_id)
+	SELECT id, $8 FROM inserted_instituion
+	RETURNING (SELECT id FROM inserted_instituion), (SELECT created_at FROM inserted_instituion)
 	`
 
 	err := r.db.QueryRow(ctx, query,
 		e.Name,
 		e.Code,
-		e.Password,
+		e.OfficialEmail,
+		e.Address,
+		e.District,
+		e.State,
+		e.Country,
+		userID,
 	).Scan(&e.ID, &e.CreatedAt)
 
 	return e, err

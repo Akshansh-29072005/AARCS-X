@@ -3,11 +3,15 @@ package institutes
 import "time"
 
 type InstitutionEntity struct {
-	ID        int
-	Name      string
-	Code      string
-	Password  string
-	CreatedAt time.Time
+	ID     	      int
+	Name    	  string
+	Code      	  string
+	OfficialEmail string
+	Address  	  string
+	District	  string
+	State    	  string
+	Country 	  string
+	CreatedAt	  time.Time
 }
 
 type GetByIDInstituteResponse struct {
