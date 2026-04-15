@@ -36,7 +36,7 @@ Each domain (students, teachers, institutes, auth) owns its API, business logic,
 - [x] Request ID + structured logging middleware
 - [x] System health and runtime metrics endpoints
 - [ ] Distributed tracing (OpenTelemetry)
-- [ ] Rate limiting
+- [x] Redis-backed rate limiting middleware
 - [ ] CI/CD pipeline
 
 ## Non-Goals (For Now)
@@ -59,9 +59,9 @@ Production Readiness — What’s Implemented vs What To Finalize
 	- 🚧 Secure CORS: restrict `AllowOrigins` to trusted domains; remove `*` for production.
 	- TLS: run behind a reverse proxy (Nginx/Traefik) with HTTPS and HSTS.
 	- 🚧 Secrets: move `DATABASE_URL`, `JWT_SECRET`, and related secrets to a secrets manager (not `.env`).
-	- 🚧 AuthN/AuthZ hardening: add refresh tokens, token revocation, stronger role policies.
+	- 🚧 AuthN/AuthZ hardening: add refresh tokens, token revocation, stronger role claims/policies.
 	- 🚧 Observability: Prometheus metrics + OpenTelemetry tracing; current health metrics are implemented, but full telemetry is pending.
-	- Rate limiting & security headers: add middleware for DoS resistance and headers (CSP, X-Frame-Options, etc.).
+	- Security headers: add middleware for CSP, X-Frame-Options, X-Content-Type-Options, and stricter transport headers.
 	- API versioning & docs: provide `/v1` routes and Swagger/OpenAPI spec.
 	- CI/CD: build, test, lint, containerize, run migrations, and deploy via GitHub Actions.
 	- Performance: DB indexes, pagination, caching (Redis), Gin in release mode.
@@ -77,9 +77,12 @@ sudo -u postgres psql -c "CREATE DATABASE aarcs_db OWNER aarcs_user;"
 ```bash
 export GIN_MODE=debug
 export DATABASE_URL=postgres://aarcs_user:secret@localhost:5432/aarcs_db?sslmode=disable
+export REDIS_URL=redis://localhost:6379/0
 export PORT=8000
 export JWT_SECRET=supersecret
 export LOG_LEVEL=info
+export RateLimit=100
+export RateWindow=1m
 # Recommended for prod hardening:
 # export GIN_MODE=release
 # export ALLOWED_ORIGINS=https://yourapp.com,https://admin.yourapp.com
@@ -110,11 +113,29 @@ API Endpoints (current)
 	- `GET /api/v1/auth/protected/me` (requires `Authorization: Bearer <token>`)
 - Domain routes (protected + role: `institution`)
 	- `POST/GET /api/v1/institutions`
+	- `GET /api/v1/institutions/:id`
 	- `POST/GET /api/v1/departments`
 	- `POST/GET /api/v1/semesters`
 	- `POST/GET /api/v1/subjects`
 	- `POST/GET /api/v1/students`
+	- `GET /api/v1/students/:id`
 	- `POST/GET /api/v1/teachers`
+	- `GET /api/v1/teachers/:id`
+
+Backend Implementation Status (current)
+
+| Backend Area | Status | Notes |
+|---|---|---|
+| Core API bootstrapping | ✅ Implemented | Router init, recovery, request ID, logger middleware, centralized error middleware wired in `main.go`. |
+| PostgreSQL integration | ✅ Implemented | `pgxpool` connection + startup validation. |
+| Redis integration | ✅ Implemented | Redis client connected at startup and shared with repositories/middleware. |
+| Rate limiting | ✅ Implemented | Redis-backed IP limiter middleware is active in request pipeline. |
+| Auth register/login | ✅ Implemented | `POST /api/v1/auth/register` and `POST /api/v1/auth/login`. |
+| JWT-protected routes | ✅ Implemented | Auth middleware validates Bearer token and injects `user_id`. |
+| Role-based authorization | 🚧 In Progress | `RequireRole` middleware exists; token/claims role propagation needs completion for strict RBAC enforcement. |
+| Domain modules (CRUD base) | ✅ Implemented | Institutions, departments, semesters, subjects, students, teachers have create/read endpoints. |
+| Distributed tracing | 🚧 In Progress | Planned OpenTelemetry integration. |
+| CI/CD pipeline | 🚧 In Progress | Deployment automation not documented as active yet. |
 
 Backend — Folder-by-Folder
 - [backend/cmd/api/main.go](backend/cmd/api/main.go): Entry point. Loads config, connects DB, configures CORS, registers routes, starts server.
@@ -125,6 +146,7 @@ Backend — Folder-by-Folder
 - [backend/internal/platform/middleware](backend/internal/platform/middleware): Active cross-cutting middleware (`AuthMiddleware`, `RequireRole`, `RequestID`, request logging, centralized error handling). Advantages: consistent security and observability at the edge.
 - [backend/internal/platform/logger](backend/internal/platform/logger): Zerolog-based logger bootstrap with environment/level awareness. Advantages: structured logs in production, readable logs in development.
 - [backend/internal/platform/errors](backend/internal/platform/errors): Shared typed application errors and DB-error mapping. Advantages: stable error contracts and cleaner handler/service boundaries.
+- [backend/internal/users](backend/internal/users): Central user domain for authentication workflows and shared identity logic (backed by PostgreSQL + Redis).
 - [backend/internal/students](backend/internal/students): Domain module (DTO/entity/model/repository/service/handler/routes). Advantages: clean layering, testable components, easier evolution.
 - [backend/internal/teachers](backend/internal/teachers): Same structure as `students`. Advantages: consistency, isolated business logic.
 - [backend/internal/institutes](backend/internal/institutes): Implemented institute domain with create/read endpoints and service/repository layers.
@@ -192,8 +214,8 @@ CI/CD & Deployment
 - Zero-downtime deploys: readiness gates + migration strategy.
 
 Environment Variables
-- Backend runtime fields (implemented in config): `GIN_MODE`, `DATABASE_URL`, `PORT`, `JWT_SECRET`, `LOG_LEVEL`
-- Backend recommended additions: `ALLOWED_ORIGINS`, `REDIS_URL`
+- Backend runtime fields (implemented in config): `GIN_MODE`, `DATABASE_URL`, `REDIS_URL`, `PORT`, `JWT_SECRET`, `LOG_LEVEL`, `RateLimit`, `RateWindow`
+- Backend recommended additions: `ALLOWED_ORIGINS`
 
 ⚠️ Security Note  
 `.env` files are for local development only. Production secrets must be injected via environment variables or a secrets manager.
@@ -267,7 +289,7 @@ Environment variables (backend)
 Auth module status
 - ✅ Implemented: register/login/protected `me` routes are active in [backend/internal/auth/routes.go](backend/internal/auth/routes.go).
 - ✅ Implemented: JWT validation middleware active in [backend/internal/platform/middleware/auth.go](backend/internal/platform/middleware/auth.go).
-- ✅ Implemented: role guard middleware available in [backend/internal/platform/middleware/role.go](backend/internal/platform/middleware/role.go).
+- 🚧 In progress: role-claim propagation + strict RBAC enforcement through [backend/internal/platform/middleware/role.go](backend/internal/platform/middleware/role.go).
 - 🚧 In progress: logout flow and token invalidation/refresh strategy.
 <!-- Next production steps recommended based on current progress
 - Enable the auth module and add JWT middleware; wire it into the `/api/v1` groups.
@@ -310,6 +332,8 @@ Config progress
 Backend maturity highlights
 - Domain modules active: `auth`, `institutes`, `departments`, `semesters`, `subjects`, `teachers`, `students`.
 - Consistent layered structure across domains (DTO/Repository/Service/Handler/Routes).
+- Redis-backed rate limiting is now active in middleware and integrated at bootstrap.
+- `users` domain is now integrated as a foundational module for auth flows.
 - System observability baseline in place via:
 	- `GET /api/v1/system/health`
 	- `GET /api/v1/system/metrics`
