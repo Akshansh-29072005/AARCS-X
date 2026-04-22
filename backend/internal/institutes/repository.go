@@ -114,8 +114,8 @@ func (r *Repository) GetByID(ctx context.Context, id int) (*GetByIDInstituteResp
 		return &institution, true, nil
 
 	} else if err != redis.Nil {
-		// Redis error 
-		
+		// Redis error
+		return nil, false, err
 	}
 
 	// Cache miss, query PostgreSQL
