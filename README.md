@@ -51,10 +51,10 @@ Production Readiness — What’s Implemented vs What To Finalize
 - Implemented
 	- ✅ Health + system metrics endpoints: `GET /api/v1/system/health`, `GET /api/v1/system/metrics` in [backend/internal/platform/server/routes.go](backend/internal/platform/server/routes.go).
 	- ✅ Connection pooling and startup DB validation in [backend/internal/platform/database/postgres.go](backend/internal/platform/database/postgres.go).
-	- ✅ Environment-driven config in [backend/internal/config/config.go](backend/internal/config/config.go) (`GIN_MODE`, `DATABASE_URL`, `PORT`, `JWT_SECRET`, `LOG_LEVEL`).
+	- ✅ Environment-driven config in [backend/internal/config/config.go](backend/internal/config/config.go) (`GIN_MODE`, `DATABASE_URL`, `REDIS_URL`, `PORT`, `JWT_SECRET`, `LOG_LEVEL`, `RateLimit`, `RateWindow`).
 	- ✅ Structured logging + request correlation via middleware stack in [backend/cmd/api/main.go](backend/cmd/api/main.go) and [backend/internal/platform/middleware](backend/internal/platform/middleware).
 	- ✅ Auth enabled: register/login/protected routes in [backend/internal/auth/routes.go](backend/internal/auth/routes.go), JWT utilities in [backend/internal/platform/utlis/jwt.go](backend/internal/platform/utlis/jwt.go).
-	- ✅ Role-gated domain routes (`institution`) across students, teachers, institutions, departments, semesters, and subjects.
+	- ✅ Auth-protected domain routes are active across institutions, departments, semesters, subjects, students, and teachers.
 - To finalize for production
 	- 🚧 Secure CORS: restrict `AllowOrigins` to trusted domains; remove `*` for production.
 	- TLS: run behind a reverse proxy (Nginx/Traefik) with HTTPS and HSTS.
@@ -111,15 +111,15 @@ API Endpoints (current)
 	- `POST /api/v1/auth/login`
 - Auth (protected)
 	- `GET /api/v1/auth/protected/me` (requires `Authorization: Bearer <token>`)
-- Domain routes (protected + role: `institution`)
-	- `POST/GET /api/v1/institutions`
+- Domain routes (protected)
+	- `POST/GET /api/v1/institutions` (auth required)
 	- `GET /api/v1/institutions/:id`
-	- `POST/GET /api/v1/departments`
-	- `POST/GET /api/v1/semesters`
-	- `POST/GET /api/v1/subjects`
-	- `POST/GET /api/v1/students`
+	- `POST/GET /api/v1/departments` (auth + `RequireRole("institution")`)
+	- `POST/GET /api/v1/semesters` (auth + `RequireRole("institution")`)
+	- `POST/GET /api/v1/subjects` (auth + `RequireRole("institution")`)
+	- `POST/GET /api/v1/students` (auth + `RequireRole("institution")`)
 	- `GET /api/v1/students/:id`
-	- `POST/GET /api/v1/teachers`
+	- `POST/GET /api/v1/teachers` (auth + `RequireRole("institution")`)
 	- `GET /api/v1/teachers/:id`
 
 Backend Implementation Status (current)
@@ -299,41 +299,41 @@ Auth module status
 
 ---
 
-Backend progress update (Latest snapshot)(24 Feb 2026)
+Backend progress update (Latest snapshot)(24 Apr 2026)
 
 This section reflects the latest backend state and supersedes earlier “auth pending” notes.
 
 What progressed significantly
-- Auth is now wired into application startup in [backend/cmd/api/main.go](backend/cmd/api/main.go): repository, service, and handler are initialized and routes are registered.
-- JWT secret bootstrapping is active through `utlis.SetJWTSecret(cfg.JWTSecret)` in [backend/cmd/api/main.go](backend/cmd/api/main.go).
-- Authentication middleware is implemented in [backend/internal/platform/middleware/auth.go](backend/internal/platform/middleware/auth.go) and validates Bearer tokens, then injects `user_id`, `role`, and `ref_id` into request context.
-- Role-based authorization helper exists in [backend/internal/platform/middleware/role.go](backend/internal/platform/middleware/role.go) via `RequireRole(...)`.
-- Auth service now supports institution registration + login flows in [backend/internal/auth/service.go](backend/internal/auth/service.go), including password hashing and JWT issuance.
+- Auth is wired into application startup in [backend/cmd/api/main.go](backend/cmd/api/main.go) with `users` service integration.
+- Redis integration is active at bootstrap and reused by repositories plus rate limiter middleware.
+- Redis-backed rate limiter is enabled globally via [backend/internal/platform/middleware/rate_limiter.go](backend/internal/platform/middleware/rate_limiter.go).
+- Authentication middleware validates Bearer tokens and injects `user_id` in request context via [backend/internal/platform/middleware/auth.go](backend/internal/platform/middleware/auth.go).
+- Role middleware exists via [backend/internal/platform/middleware/role.go](backend/internal/platform/middleware/role.go), with stricter claim propagation still pending.
+- Auth service supports user registration and login via [backend/internal/auth/service.go](backend/internal/auth/service.go).
 
 Current auth API status
 - Base group: `/api/v1/auth` ([backend/internal/auth/routes.go](backend/internal/auth/routes.go))
 - Public
-	- `POST /api/v1/auth/register` → Register institution + create auth user + return JWT.
+	- `POST /api/v1/auth/register` → Register user and return JWT.
 	- `POST /api/v1/auth/login` → Validate credentials + return JWT.
 - Protected (requires Bearer token)
-	- `GET /api/v1/auth/protected/me` → Returns current token identity (`user_id`, `role`, `ref_id`).
+	- `GET /api/v1/auth/protected/me` → Returns current token identity (`user_id`).
 
 Auth flow (implemented)
-1. Registration request reaches `RegisterInstitution` in [backend/internal/auth/handler.go](backend/internal/auth/handler.go).
-2. Institution is created using the institution service adapter.
-3. Password is hashed using utility functions in [backend/internal/platform/utlis/password.go](backend/internal/platform/utlis/password.go).
-4. User record is inserted in `users` through [backend/internal/auth/repository.go](backend/internal/auth/repository.go).
-5. JWT is generated via [backend/internal/platform/utlis/jwt.go](backend/internal/platform/utlis/jwt.go).
+1. Registration request reaches `RegisterUser` in [backend/internal/auth/handler.go](backend/internal/auth/handler.go).
+2. User is created through the `users` service/domain.
+3. Password handling and credential validation are applied by the user/auth services.
+4. JWT is generated via [backend/internal/platform/utlis/jwt.go](backend/internal/platform/utlis/jwt.go).
 
 Config progress
-- `JWT_SECRET` is now part of config in [backend/internal/config/config.go](backend/internal/config/config.go).
-- Important: [backend/.env.example](backend/.env.example) still lists only `DATABASE_URL` and `PORT`; add `JWT_SECRET` there to match runtime expectations.
+- `JWT_SECRET`, `REDIS_URL`, `RateLimit`, and `RateWindow` are part of config in [backend/internal/config/config.go](backend/internal/config/config.go).
+- Important: [backend/.env.example](backend/.env.example) still lists only `DATABASE_URL` and `PORT`; add missing runtime fields to avoid local/prod drift.
 
 Backend maturity highlights
-- Domain modules active: `auth`, `institutes`, `departments`, `semesters`, `subjects`, `teachers`, `students`.
+- Domain modules active: `users`, `auth`, `institutes`, `departments`, `semesters`, `subjects`, `teachers`, `students`.
 - Consistent layered structure across domains (DTO/Repository/Service/Handler/Routes).
 - Redis-backed rate limiting is now active in middleware and integrated at bootstrap.
-- `users` domain is now integrated as a foundational module for auth flows.
+- Role middleware is present but full RBAC enforcement remains marked in progress until role claims are propagated end-to-end.
 - System observability baseline in place via:
 	- `GET /api/v1/system/health`
 	- `GET /api/v1/system/metrics`
