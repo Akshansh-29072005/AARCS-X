@@ -18,6 +18,14 @@ CREATE TABLE users (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+CREATE TABLE roles (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (user_id, role)
+);
+
 -- Institution root entity.
 CREATE TABLE institutions (
     id BIGSERIAL PRIMARY KEY,
@@ -165,4 +173,5 @@ CREATE INDEX idx_attendance_student_id ON attendance(student_id);
 CREATE INDEX idx_attendance_subject_id ON attendance(subject_id);
 CREATE INDEX idx_assessments_student_id ON assessments(student_id);
 CREATE INDEX idx_assessments_subject_id ON assessments(subject_id);
+CREATE INDEX idx_roles_user_id ON roles(user_id);
 
