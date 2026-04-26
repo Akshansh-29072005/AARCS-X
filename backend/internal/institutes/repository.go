@@ -13,6 +13,8 @@ import (
 )
 
 const institutionChacheTTL = 10 * time.Minute
+const RoleInstitutionOwner string = "institution_owner"
+const RoleInstitutionAdmin string = "institution_admin"
 
 type Repository struct {
 	db *pgxpool.Pool
@@ -26,16 +28,29 @@ func NewRepository(db *pgxpool.Pool, rdb *redis.Client) *Repository {
 	}
 }
 
-func (r *Repository) Create(ctx context.Context, e *InstitutionEntity, userID int) (*InstitutionEntity, error) {
+func (r *Repository) Create(ctx context.Context, e *InstitutionEntity, userID int, roleName string) (*InstitutionEntity, error) {
+
+	roleName = RoleInstitutionOwner
 	query := `
-	WITH inserted_instituion AS (
+	WITH inserted_institution AS (
 		INSERT INTO institutions (name, code, official_email, address, district, state, country, created_at)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,NOW())
+		VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+		RETURNING id, created_at
+	),
+	inserted_owner AS (
+		INSERT INTO institution_owners (institution_id, user_id)
+		SELECT id, $8 FROM inserted_institution
+		RETURNING institution_id
+	),
+	inserted_role AS (
+		INSERT INTO roles (user_id, role, created_at)
+		VALUES ($8, $9, NOW())
 		RETURNING id, created_at
 	)
-	INSERT INTO institution_owners (institution_id, user_id)
-	SELECT id, $8 FROM inserted_instituion
-	RETURNING (SELECT id FROM inserted_instituion), (SELECT created_at FROM inserted_instituion)
+	SELECT 
+		id,
+		created_at
+	FROM inserted_institution;
 	`
 
 	err := r.db.QueryRow(ctx, query,
@@ -47,9 +62,68 @@ func (r *Repository) Create(ctx context.Context, e *InstitutionEntity, userID in
 		e.State,
 		e.Country,
 		userID,
+		roleName,
 	).Scan(&e.ID, &e.CreatedAt)
 
+	if err != nil {
+		return nil, err
+	}
+
 	return e, err
+}
+
+func (r *Repository) IsInstitutionOwner(ctx context.Context, institutionID int, userID int) (bool, error) {
+	var exists bool
+	err := r.db.QueryRow(ctx,
+		`SELECT EXISTS (
+			SELECT 1 FROM institution_owners 
+			WHERE institution_id = $1 AND user_id = $2
+		)`, institutionID, userID,
+	).Scan(&exists)
+
+	return exists, err
+}
+
+func (r *Repository) PromoteToAdmin(ctx context.Context, institutionID int, userID int) (*AdminEntity, error) {	
+	query := `
+	WITH new_role AS (
+		INSERT INTO roles (user_id, role, created_at)
+		VALUES ($1, $2, NOW())
+		ON CONFLICT (user_id, role) DO UPDATE SET created_at = NOW()
+		RETURNING id, role, created_at
+	),
+	inserted_admin AS (
+		INSERT INTO institution_admins (user_id, institution_id, created_at)
+		VALUES ($1, $3, NOW())
+		ON CONFLICT (user_id, institution_id) DO NOTHING
+		RETURNING instituion_id
+	)
+	SELECT
+		    nr.user_id,
+		    nr.role,
+		    nr.created_at,
+			$3 AS institution_id
+	FROM new_role nr
+	`
+
+	var e AdminEntity
+
+	err := r.db.QueryRow(ctx,
+		query,
+		userID,
+		RoleInstitutionAdmin,
+		institutionID,
+		).Scan(
+			&e.UserID,
+			&e.Role,
+			&e.CreatedAt,
+			&e.InstitutionID,
+		)
+	if err != nil {
+		return nil, err
+	}
+
+	return &e, nil
 }
 
 func (r *Repository) List(ctx context.Context, q GetInstitutionRequest) ([]Institute, error) {
