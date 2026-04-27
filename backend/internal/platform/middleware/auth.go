@@ -21,15 +21,15 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		// Check Bearer format
-		parts := strings.SplitN(authHeader, " ", 2)
-		if len(parts) != 2 || parts[0] != "Bearer" {
+		parts := strings.HasPrefix(authHeader, "Bearer ")
+		if !parts {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "authorization header format must be Bearer {token}",
 			})
 			return
 		}
 
-		tokenString := parts[1]
+		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
 		// Parse & validate token
 		claims, err := utlis.ParseToken(tokenString)
