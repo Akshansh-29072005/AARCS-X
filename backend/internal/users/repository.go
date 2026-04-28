@@ -24,9 +24,20 @@ func NewRepository(db *pgxpool.Pool, rdb *redis.Client) *Repository {
 
 func (r *Repository) CreateUser(ctx context.Context, u *UserEntity) (*UserEntity, error) {
 	query := `
+	WITH inserted_user AS (
 		INSERT INTO users (name, email, phone, password_hash, created_at)
 		VALUES ($1, $2, $3, $4, NOW())
 		RETURNING id, created_at
+	),
+	inserted_role AS (
+		INSERT INTO roles (user_id, role, created_at)
+		SELECT id, 'user', NOW() FROM inserted_user
+		RETURNING id, created_at
+	)
+	SELECT 
+		id,
+		created_at
+	FROM inserted_user;
 	`
 
 	err := r.db.QueryRow(ctx, query,
