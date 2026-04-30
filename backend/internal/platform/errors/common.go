@@ -21,3 +21,7 @@ func Internal(msg string, err error) *AppError {
 func Unauthorized(msg string, err error) *AppError {
 	return New("UNAUTHORIZED", msg, http.StatusUnauthorized, err)
 }
+
+func Forbidden(msg string, err error) *AppError {
+	return New("FORBIDDEN", msg, http.StatusForbidden, err)
+}
