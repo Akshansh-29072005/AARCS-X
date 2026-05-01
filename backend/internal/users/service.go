@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/errors"
-	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/utlis"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/utils"
 )
 
 
@@ -26,7 +26,7 @@ func (s *Service) CreateUser(ctx context.Context, req CreateUserRequest) (int, e
 	cleanedPhone := strings.TrimSpace(req.PhoneNumber)
 
 
-	hashedPassword, err := utlis.HashPassword(req.Password)
+	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
 		return 0, errors.Internal("failed to hash password", err)
 	}
@@ -46,6 +46,14 @@ func (s *Service) CreateUser(ctx context.Context, req CreateUserRequest) (int, e
 	return saved.ID, nil
 }
 
+func (s *Service) GetRolesByID(ctx context.Context, userID int) ([]string, error) {
+	roles, err := s.repo.GetRolesByID(ctx, userID)
+	if err != nil {
+		return []string{}, errors.FromPostgresError(err)
+	}
+	return roles, nil
+}
+
 func (s *Service) GetUserByEmail(ctx context.Context, email string, password string) (*UserEntity, error) {
 
 	// CleanedEmail is used to ensure that the email is stored in a consistent format.
@@ -59,7 +67,7 @@ func (s *Service) GetUserByEmail(ctx context.Context, email string, password str
 		return nil, errors.NotFound("user not found", nil)
 	}
 
-	isMatch, err := utlis.ComparePasswords(user.Password, password)
+	isMatch, err := utils.ComparePasswords(user.Password, password)
 	if err != nil {
 		return nil, errors.Internal("failed to compare passwords", err)
 	}

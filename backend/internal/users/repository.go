@@ -54,6 +54,35 @@ func (r *Repository) CreateUser(ctx context.Context, u *UserEntity) (*UserEntity
 	return u, nil
 }
 
+func (r *Repository) GetRolesByID(ctx context.Context, id int) ([]string, error) {
+	query := `
+		SELECT role
+		FROM roles
+		WHERE user_id = $1
+	`
+
+	var roles []string
+	rows, err := r.db.Query(ctx, query, id)
+	if err != nil {
+		return []string{}, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var role string
+		if err := rows.Scan(&role); err != nil {
+			return []string{}, err
+		}
+		roles = append(roles, role)
+	}
+
+	if err := rows.Err(); err != nil {
+		return []string{}, err
+	}
+
+	return roles, nil
+}
+
 func (r *Repository) GetUserByEmail(ctx context.Context, email string) (*UserEntity, error) {
 	query := `
 		SELECT id, name, email, phone, password_hash, created_at
