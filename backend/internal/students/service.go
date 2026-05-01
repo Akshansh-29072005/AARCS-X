@@ -5,7 +5,7 @@ import (
 
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/database"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/errors"
-	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/utlis"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/utils"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 )
@@ -29,7 +29,7 @@ func (s *Service) CreateStudent(ctx context.Context, req CreateStudentRequest) (
 	err := database.WithTransaction(ctx, s.pool, func(tx database.DBTX, rdb *redis.Client) error{
 		repo := NewRepository(tx, rdb)
 
-		hashedPassword, err := utlis.HashPassword(req.Password)
+		hashedPassword, err := utils.HashPassword(req.Password)
 		if  err != nil {
 			return errors.Internal("failed to hash password", err)
 		}
