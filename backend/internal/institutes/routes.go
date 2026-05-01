@@ -5,19 +5,40 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterRoutes(r *gin.Engine, h *Handler) {
+func RegisterRoutes(r *gin.Engine, h *Handler, rp middleware.RoleProvider) {
 
-	group := r.Group("/api/v1")
-	group.Use(middleware.AuthMiddleware())
+	v1 := r.Group("/api/v1")
+	v1.Use(middleware.AuthMiddleware())
+	v1.Use(middleware.RequireRole(rp, "user"))
 
 	// Institution Creating Route
-	group.POST("/institutions", h.CreateInstitute)
-
-	group.Use(middleware.RequireRole("institution"))
-
+	v1.POST("/institutions", h.CreateInstitute)
 	// Institution Info Getting Route
-	group.GET("/institutions", h.Read)
+	v1.GET("/institutions", h.Read)
 
-	// Institution Info Getting by ID Route
-	group.GET("/institutions/:id", h.ReadByID)
+
+	superUser := r.Group("/api/v1")
+	superUser.Use(middleware.AuthMiddleware())
+	superUser.Use(middleware.RequireRole(rp, "super_user"))
+
+	{
+		// Super User Routes for managing institutions
+	}
+
+	ownerOnly := r.Group("/api/v1")
+	ownerOnly.Use(middleware.AuthMiddleware())
+	ownerOnly.Use(middleware.RequireRole(rp, "institution_owner"))
+
+	{
+		// Make Admin Route, only institution owners can promote admins
+		ownerOnly.POST("/institutions/make-admin", h.MakeAdmin)
+	}
+
+	staff := r.Group("/api/v1")
+	staff.Use(middleware.AuthMiddleware())
+	staff.Use(middleware.RequireRole(rp, "institution_owner", "institution_admin"))
+	{
+		// Institution Info Getting by ID Route
+		staff.GET("/institutions/:id", h.ReadByID)
+	}
 }

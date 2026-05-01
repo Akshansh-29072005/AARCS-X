@@ -2,7 +2,6 @@ package institutes
 
 import (
 	"context"
-	
 
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/errors"
 )
@@ -27,7 +26,7 @@ func (s *Service) CreateInstitute(ctx context.Context, req CreateInstitutionRequ
 		Country:  	   req.Country,
 	}
 
-	saved, err := s.repo.Create(ctx, entity, userID)
+	saved, err := s.repo.Create(ctx, entity, userID, RoleInstitutionOwner)
 	if err != nil {
 		return nil, errors.FromPostgresError(err)
 	}
@@ -43,6 +42,31 @@ func (s *Service) CreateInstitute(ctx context.Context, req CreateInstitutionRequ
 		Country:       saved.Country,
 		CreatedAt:     saved.CreatedAt,
 	}, nil
+}
+
+func (s *Service) MakeAdmin(ctx context.Context, r MakeAdminRequest, userID int) (*Admin, error) {
+
+	isOwner, err := s.repo.IsInstitutionOwner(ctx, r.InstitutionID, userID)
+	if err != nil {
+		return nil, errors.FromPostgresError(err)
+	}
+
+	if !isOwner {
+		return nil, errors.Forbidden("only institution owners can promote admins", nil)
+	}
+
+	saved, err := s.repo.PromoteToAdmin(ctx, r.InstitutionID, r.UserID)
+	if err != nil {
+		return nil, errors.FromPostgresError(err)
+	}
+	
+	return &Admin{
+		saved.UserID,
+		saved.InstitutionID,
+		saved.Role,
+		saved.CreatedAt,
+	}, nil
+
 }
 
 func (s *Service) GetInstitutions(ctx context.Context, q GetInstitutionRequest) (*GetInstitutionsResponse, error) {

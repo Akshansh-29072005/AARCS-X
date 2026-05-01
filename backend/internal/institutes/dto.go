@@ -10,6 +10,11 @@ type CreateInstitutionRequest struct {
 	Country        string `json:"country" binding:"required"`
 }
 
+type MakeAdminRequest struct {
+	InstitutionID int `json:"institution_id" binding:"required"`
+	UserID        int `json:"user_id" binding:"required"`
+}
+
 type InstitutionListItem struct {
 	ID   int    `json:"id" binding:"required"`
 	Name string `json:"name" binding:"required"`

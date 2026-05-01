@@ -13,3 +13,10 @@ type Institute struct {
 	Country       string    `json:"country" db:"country"`
 	CreatedAt	  time.Time `json:"created_at" db:"created_at"`
 }
+
+type Admin struct {
+	UserID        int       `db:"user_id"`
+	InstitutionID  int       `db:"institution_id"`
+	Role          string    `db:"role"`
+	CreatedAt    time.Time `db:"created_at"`
+}

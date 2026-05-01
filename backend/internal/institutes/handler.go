@@ -45,6 +45,33 @@ func (h *Handler) CreateInstitute(c *gin.Context) {
 		Msg("Institute created successfully")
 }
 
+func (h *Handler) MakeAdmin(c *gin.Context) {
+
+	log := middleware.GetLogger(c)
+	log.Info().
+		Str("component", "institutes_handler").
+		Msg("Received request to make admin for an institute")
+
+	var req MakeAdminRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.Error(errors.BadRequest("invalid request body", err))
+		return
+	}
+
+	admin, err := h.service.MakeAdmin(c.Request.Context(), req, c.GetInt(middleware.UserIDKey))
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, admin)
+
+	log.Info().
+		Str("component", "institutes_handler").
+		Msg("Admin created successfully")
+}
+
 func (h *Handler) Read(c *gin.Context) {
 
 	log := middleware.GetLogger(c)
