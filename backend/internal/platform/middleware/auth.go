@@ -4,16 +4,18 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/utlis"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/utils"
 	"github.com/gin-gonic/gin"
 )
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		log := GetLogger(c)
 
 		// Get Authorization header
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
+			log.Warn().Msg("Authorization header missing")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "authorization header missing",
 			})
@@ -21,8 +23,8 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		// Check Bearer format
-		parts := strings.HasPrefix(authHeader, "Bearer ")
-		if !parts {
+		if !strings.HasPrefix(authHeader, "Bearer ") {
+			log.Warn().Msg("Invalid authorization header format")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "authorization header format must be Bearer {token}",
 			})
@@ -32,8 +34,9 @@ func AuthMiddleware() gin.HandlerFunc {
 		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
 		// Parse & validate token
-		claims, err := utlis.ParseToken(tokenString)
+		claims, err := utils.ParseToken(tokenString)
 		if err != nil {
+			log.Warn().Err(err).Msg("Invalid or expired token")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "invalid or expired token",
 			})
@@ -41,7 +44,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		// Store identity in context
-		c.Set("user_id", claims.UserID)
+		c.Set(UserIDKey, claims.UserID)
 
 		// Continue request
 		c.Next()
