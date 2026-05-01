@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/errors"
-	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/utlis"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/utils"
 )
 
 type Service struct {
@@ -19,7 +19,7 @@ func NewService(repo *Repository) *Service {
 
 func (s *Service) CreateTeacher(ctx context.Context, req CreateTeacherRequest) (*Teacher, error) {
 
-	hashedPassword, err := utlis.HashPassword(req.Password)
+	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
 		return nil, errors.Internal("failed to hash password", err)
 	}
