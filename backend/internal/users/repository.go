@@ -2,6 +2,8 @@ package users
 
 import (
 	"context"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -55,30 +57,43 @@ func (r *Repository) CreateUser(ctx context.Context, u *UserEntity) (*UserEntity
 }
 
 func (r *Repository) GetRolesByID(ctx context.Context, id int) ([]string, error) {
+
+	// Check cache first
+	cacheKey := "user_roles:" + strconv.Itoa(id)
+	cachedRoles, err := r.rdb.Get(ctx, cacheKey).Result()
+	if err == nil {
+		return strings.Split(cachedRoles, ","), nil
+	}
+
+	// If cache miss, query database
 	query := `
 		SELECT role
 		FROM roles
 		WHERE user_id = $1
 	`
 
-	var roles []string
 	rows, err := r.db.Query(ctx, query, id)
 	if err != nil {
-		return []string{}, err
+		return nil, err
 	}
 	defer rows.Close()
 
+	var roles []string
 	for rows.Next() {
 		var role string
 		if err := rows.Scan(&role); err != nil {
-			return []string{}, err
+			return nil, err
 		}
 		roles = append(roles, role)
 	}
 
 	if err := rows.Err(); err != nil {
-		return []string{}, err
+		return nil, err
 	}
+
+	// Cache the roles in Redis
+	cacheValue := strings.Join(roles, ",")
+	_ = r.rdb.Set(context.Background(), cacheKey, cacheValue, UsersCacheTTL).Err()
 
 	return roles, nil
 }
