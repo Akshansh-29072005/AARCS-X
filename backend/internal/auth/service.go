@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/errors"
-	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/utlis"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/utils"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/users"
 )
 
@@ -31,7 +31,7 @@ func (s *Service) RegisterUser(ctx context.Context, req CreateUserRequest) (stri
 		return "", err
 	}
 
-	token, err := utlis.GenerateToken(userId)
+	token, err := utils.GenerateToken(userId)
 	if err != nil {
 		return "", errors.Internal("failed to generate token", err)
 	}
@@ -46,7 +46,7 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (string, error) {
 		return "", err
 	}
 
-	token, err := utlis.GenerateToken(user.ID)
+	token, err := utils.GenerateToken(user.ID)
 	if err != nil {
 		return "", errors.Internal("failed to generate token", err)
 	}

@@ -12,7 +12,7 @@ import (
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/logger"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/middleware"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/server"
-	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/utlis"
+	"github.com/Akshansh-29072005/AARCS-X/backend/internal/platform/utils"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/semesters"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/students"
 	"github.com/Akshansh-29072005/AARCS-X/backend/internal/subjects"
@@ -34,8 +34,14 @@ func main() {
 		panic("failed to load configuration: " + err.Error())
 	}
 
-	limit, _ := strconv.ParseInt(cfg.RateLimit, 10, 64)
-	window, _ := time.ParseDuration(cfg.RateWindow)
+	limit, err := strconv.ParseInt(cfg.RateLimit, 10, 64)
+	if err != nil {
+		panic("failed to parse rate limit: " + err.Error())
+	}
+	window, err := time.ParseDuration(cfg.RateWindow)
+	if err != nil {
+		panic("failed to parse rate window: " + err.Error())
+	}
 
 	// Initializing logger
 	appLogger := logger.NewLogger(cfg.GinMode, cfg.LogLevel)
@@ -96,7 +102,7 @@ func main() {
 	server.RegisterRoutes(router, pool, appLogger)
 
 	// Setting JWT Secret
-	utlis.SetJWTSecret(cfg.JWTSecret)
+	utils.SetJWTSecret(cfg.JWTSecret)
 
 	/* Initializing repositories, services, and handlers for each module */
 
@@ -174,22 +180,22 @@ func main() {
 	auth.RegisteredRoutes(router, authHandler)
 
 	// Institution Routes
-	institutes.RegisterRoutes(router, institutionHandler)
+	institutes.RegisterRoutes(router, institutionHandler, userService)
 
 	// Department Routes
-	departments.RegisterRoutes(router, departmentHandler)
+	departments.RegisterRoutes(router, departmentHandler, userService)
 
 	// Semester Routes
-	semesters.RegisterRoutes(router, semestersHandler)
+	semesters.RegisterRoutes(router, semestersHandler, userService)
 
 	// Subject Routes
-	subjects.RegisterRoutes(router, subjectHandler)
+	subjects.RegisterRoutes(router, subjectHandler, userService)
 
 	// Teacher Routes
-	teachers.RegisteredRoutes(router, teacherHandler)
+	teachers.RegisteredRoutes(router, teacherHandler, userService)
 
 	// Student Routes
-	students.RegisterRoutes(router, studentHandler)
+	students.RegisterRoutes(router, studentHandler, userService)
 
 	if err = router.Run(":" + cfg.Port); err != nil {
 		appLogger.Fatal().Err(err).Msg("Failed to start server")
