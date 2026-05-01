@@ -5,11 +5,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterRoutes(r *gin.Engine, h *Handler) {
+func RegisterRoutes(r *gin.Engine, h *Handler, rp middleware.RoleProvider) {
 
 	group := r.Group("/api/v1")
 	group.Use(middleware.AuthMiddleware())
-	group.Use(middleware.RequireRole("institution"))
+	group.Use(middleware.RequireRole(rp, "institution"))
 
 	// Student Creating Route
 	group.POST("/departments", h.CreateDepartment)

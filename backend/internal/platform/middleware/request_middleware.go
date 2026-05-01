@@ -8,14 +8,19 @@ import (
 
 func RequestLogger() gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		path := c.Request.URL.Path
 
 		// Skip infrastructure endpoints
-        if path == "/api/v1/system/metrics" || path == "/api/v1/system/health" {
-            c.Next()
-            return
-        }
+		if path == "/api/v1/system/metrics" || path == "/api/v1/system/health" {
+			c.Next()
+			return
+		}
+
+		log := GetLogger(c)
+		log.Info().
+			Str("method", c.Request.Method).
+			Str("path", path).
+			Msg("Request started")
 
 		start := time.Now()
 		clientIP := c.ClientIP()
@@ -24,8 +29,6 @@ func RequestLogger() gin.HandlerFunc {
 
 		latency := time.Since(start)
 		status := c.Writer.Status()
-
-		log := GetLogger(c)
 
 		log.Info().
 			Str("client_ip", clientIP).
